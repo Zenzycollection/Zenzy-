@@ -1,5 +1,6 @@
 const API='/api';
-let products=[], activeFilter='All', cart=JSON.parse(localStorage.getItem('zenzy-cart')||'[]'), wishlist=JSON.parse(localStorage.getItem('zenzy-wishlist')||'[]');
+const load=k=>{try{const v=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(v)?v:[]}catch{return[]}};
+let products=[], activeFilter='All', cart=load('zenzy-cart'), wishlist=load('zenzy-wishlist');
 const $=s=>document.querySelector(s);
 const money=n=>'₹'+Number(n).toLocaleString('en-IN');
 const toast=msg=>{const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)};
