@@ -222,7 +222,7 @@ footer{background:#111;color:white;padding:65px 8% 25px}
   <a href="/" class="logo">ZENZY<small>COLLECTION</small></a>
 
   <nav class="nav" id="nav">
-    <a href="/">Home</a>
+<a href="/blog" data-nav="home">Journal</a>
     <a href="#featured">Editor's Picks</a>
     <a href="#latest">Latest Stories</a>
     <a href="#categories">Categories</a>
@@ -549,7 +549,7 @@ async function showArticle(slug){
   });
   $('#app').innerHTML=`
   <article class="article-detail">
-   <div class="breadcrumb"><a href="/">HOME</a> / <a href="/blog">THE JOURNAL</a> / ${esc(a.category)}</div>
+   <div class="breadcrumb"><a href="/blog" data-nav="home">Journal</a> / <a href="/blog">THE JOURNAL</a> / ${esc(a.category)}</div>
    <p class="eyebrow gold" style="margin-top:35px">${esc(a.category)}</p>
    <h1>${esc(a.title)}</h1>
    <p class="lead">${esc(a.excerpt)}</p>
