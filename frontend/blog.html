@@ -606,7 +606,7 @@ async function showArticle(slug){
    <p class="eyebrow gold" style="margin-top:35px">${esc(a.category)}</p>
    <h1>${esc(a.title)}</h1>
    <p class="lead">${esc(a.excerpt)}</p>
-   <div class="meta">${esc(a.author||'Zenzy Editorial')} · ${date(a.publishedAt)} · ${a.readingTime||Math.max(1,Math.ceil(wordCount/200))} MIN READ${updated}</div>
+   <div class="meta"><a class="author-link" href="/blog/author/${encodeURIComponent(slugOf(a.author||'Zenzy Editorial'))}">${esc(a.author||'Zenzy Editorial')}</a> · ${date(a.publishedAt)} · ${a.readingTime||Math.max(1,Math.ceil(wordCount/200))} MIN READ${updated}</div>
    ${a.coverImage?`<img class="cover" src="${esc(a.coverImage)}" alt="${esc(a.coverImageAlt||a.title)}">`:''}
    <div class="detail-tools">
     <span class="meta">THE ZENZY JOURNAL</span>
