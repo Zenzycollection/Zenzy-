@@ -84,7 +84,22 @@ module.exports = function seoRouter(connectDb, frontDir) {
     res.send(render({ title, description, canonical, noindex: !!req.query.q, schema: [org(b)].map(o => ({ '@context': 'https://schema.org', ...o })) }));
   });
 
-router.get('/blog/:slug', async (req, res) => {
+router.get('/blog/author/:name', async (req, res) => {
+    const b = base(req);
+    try {
+      await connectDb();
+      const names = await Article.distinct('author', live());
+      const hit = names.find(n => slugify(n) === slugify(req.params.name));
+      if (!hit) return res.status(404).send(render({ title: 'Author not found | The Zenzy Journal', description: 'This author could not be found.', canonical: b + '/blog', noindex: true }));
+      const url = b + '/blog/author/' + slugify(hit);
+      res.send(render({ title: hit + ' | Author at The Zenzy Journal', description: 'Read fashion stories, styling guides and trend reports by ' + hit + ' at The Zenzy Journal.', canonical: url, schema: [{ '@context': 'https://schema.org', '@type': 'ProfilePage', mainEntity: { '@type': 'Person', name: hit, url } }] }));
+    } catch (e) {
+      console.error('Author page error:', e.message);
+      res.sendFile(path.join(frontDir, 'blog.html'));
+    }
+  });
+
+  router.get('/blog/:slug', async (req, res) => {
     const s = req.params.slug, cat = CATEGORIES.find(c => c.slug === s);
     if (PAGES[s] || cat) {
       const b0 = base(req), m = cat
