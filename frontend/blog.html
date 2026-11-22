@@ -411,6 +411,7 @@ function currentPage(){
  const p=location.pathname.split('/').filter(Boolean);
  if(p[0]==='lookbook')return{page:'lookbook'};
  if(p[0]!=='blog'||!p[1])return{page:'home'};
+ if(p[1]==='author'&&p[2])return{page:'author',author:decodeURIComponent(p[2])};
  const s=decodeURIComponent(p[1]);
  if(SECTION_PAGES.includes(s))return{page:s};
  const btn=[...document.querySelectorAll('.category')].find(b=>b.dataset.category&&slugOf(b.dataset.category)===s);
