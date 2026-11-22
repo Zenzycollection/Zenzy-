@@ -1,0 +1,96 @@
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const Article = require('../models/Article');
+const { CATEGORIES } = require('../utils/categories');
+
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const cut = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).trim() + '…' : s; };
+const ld = o => '<script type="application/ld+json">' + JSON.stringify(o).replace(/</g, '\\u003c') + '</script>';
+const live = () => ({ status: 'published', publishedAt: { $lte: new Date() } });
+
+module.exports = function seoRouter(connectDb, frontDir) {
+  const router = express.Router();
+  const base = req => (process.env.SITE_URL || (req.protocol + '://' + req.get('host'))).replace(/\/+$/, '');
+  const org = b => ({ '@type': 'Organization', name: 'Zenzy Collection', url: b });
+
+  function render(meta) {
+    let html = fs.readFileSync(path.join(frontDir, 'blog.html'), 'utf8');
+    html = html.replace(/<title>[\s\S]*?<\/title>/i, '').replace(/<meta\s+name="description"[^>]*>\s*/i, '');
+    const tags = [
+      '<title>' + esc(meta.title) + '</title>',
+      '<meta name="description" content="' + esc(meta.description) + '">',
+      '<link rel="canonical" href="' + esc(meta.canonical) + '">',
+      '<meta name="robots" content="' + (meta.noindex ? 'noindex,follow' : 'index,follow,max-image-preview:large') + '">',
+      '<meta property="og:site_name" content="Zenzy Collection">',
+      '<meta property="og:type" content="' + (meta.article ? 'article' : 'website') + '">',
+      '<meta property="og:title" content="' + esc(meta.title) + '">',
+      '<meta property="og:description" content="' + esc(meta.description) + '">',
+      '<meta property="og:url" content="' + esc(meta.canonical) + '">',
+      meta.image ? '<meta property="og:image" content="' + esc(meta.image) + '">' : '',
+      '<meta name="twitter:card" content="' + (meta.image ? 'summary_large_image' : 'summary') + '">',
+      '<meta name="twitter:title" content="' + esc(meta.title) + '">',
+      '<meta name="twitter:description" content="' + esc(meta.description) + '">',
+      meta.image ? '<meta name="twitter:image" content="' + esc(meta.image) + '">' : '',
+      ...(meta.schema || []).map(ld)
+    ].filter(Boolean).join('\n');
+    return html.replace('</head>', tags + '\n</head>');
+  }
+
+  router.get('/robots.txt', (req, res) => {
+    res.type('text/plain').send('User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\n\nSitemap: ' + base(req) + '/sitemap.xml\n');
+  });
+
+  router.get('/sitemap.xml', async (req, res) => {
+    const b = base(req);
+    const urls = [{ loc: b + '/' }, { loc: b + '/blog' }];
+    try {
+      await connectDb();
+      const items = await Article.find(live()).select('slug updatedAt publishedAt').sort({ publishedAt: -1 }).limit(5000).lean();
+      items.forEach(a => urls.push({ loc: b + '/blog/' + encodeURIComponent(a.slug), lastmod: new Date(a.updatedAt || a.publishedAt).toISOString() }));
+    } catch (e) { console.error('Sitemap DB error:', e.message); }
+    const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+      urls.map(u => '  <url><loc>' + esc(u.loc) + '</loc>' + (u.lastmod ? '<lastmod>' + u.lastmod + '</lastmod>' : '') + '</url>').join('\n') + '\n</urlset>\n';
+    res.type('application/xml').send(xml);
+  });
+
+  router.get('/blog', (req, res) => {
+    const b = base(req);
+    const cat = CATEGORIES.find(c => c.slug === String(req.query.category || '').toLowerCase());
+    const title = cat ? cat.name + ' | The Zenzy Journal' : 'The Zenzy Journal | Fashion, Trends & Style Inspiration';
+    const description = cat
+      ? 'Read the latest ' + cat.name + ' stories, styling ideas and guides from The Zenzy Journal.'
+      : 'Discover fashion trends, styling inspiration, wardrobe essentials and timeless fashion stories at The Zenzy Journal.';
+    const canonical = b + '/blog' + (cat ? '?category=' + cat.slug : '');
+    res.send(render({ title, description, canonical, noindex: !!req.query.q, schema: [org(b)].map(o => ({ '@context': 'https://schema.org', ...o })) }));
+  });
+
+  router.get('/blog/:slug', async (req, res) => {
+    const b = base(req);
+    try {
+      await connectDb();
+      const a = await Article.findOne({ slug: req.params.slug, ...live() }).select('-content').lean();
+      if (!a) return res.status(404).send(render({ title: 'Story not found | The Zenzy Journal', description: 'This story could not be found.', canonical: b + '/blog', noindex: true }));
+      const url = b + '/blog/' + encodeURIComponent(a.slug);
+      const canonical = /^https?:\/\//i.test(a.canonicalUrl || '') ? a.canonicalUrl : url;
+      const title = (a.seoTitle || a.title) + ' | Zenzy Collection';
+      const description = cut(a.metaDescription || a.excerpt || a.title, 160);
+      const image = /^https?:\/\//i.test(a.coverImage || '') ? a.coverImage : '';
+      const published = new Date(a.publishedAt).toISOString();
+      const schema = [
+        { '@context': 'https://schema.org', '@type': 'Article', headline: cut(a.title, 110), description, ...(image ? { image: [image] } : {}), datePublished: published, dateModified: new Date(a.updatedAt || a.publishedAt).toISOString(), author: { '@type': 'Person', name: a.author || 'Zenzy Editorial' }, publisher: org(b), mainEntityOfPage: url, articleSection: a.category },
+        { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: b + '/' },
+          { '@type': 'ListItem', position: 2, name: 'The Zenzy Journal', item: b + '/blog' },
+          { '@type': 'ListItem', position: 3, name: a.title, item: url }
+        ] }
+      ];
+      res.send(render({ title, description, canonical, image, article: true, schema }));
+    } catch (e) {
+      console.error('SEO render error:', e.message);
+      res.sendFile(path.join(frontDir, 'blog.html'));
+    }
+  });
+
+  return router;
+};
