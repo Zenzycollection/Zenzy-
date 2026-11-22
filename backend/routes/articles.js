@@ -54,6 +54,7 @@ router.get('/', async (req, res, next) => {
         { excerpt: searchRegex },
         { content: searchRegex },
         { category: searchRegex },
+        { author: searchRegex },
         { tags: searchRegex }
       ];
     }
