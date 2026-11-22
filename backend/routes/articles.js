@@ -73,6 +73,30 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+router.get('/meta/categories', async (req, res, next) => {
+  try {
+    const rows = await Article.aggregate([
+      { $match: { status: 'published', publishedAt: { $lte: new Date() } } },
+      { $group: { _id: '$category', count: { $sum: 1 } } }
+    ]);
+    const counts = Object.fromEntries(rows.map(r => [r._id, r.count]));
+    res.json(CATEGORIES.map(c => ({ ...c, count: counts[c.name] || 0 })));
+  } catch (e) { next(e); }
+});
+
+router.get('/meta/tags', async (req, res, next) => {
+  try {
+    const rows = await Article.aggregate([
+      { $match: { status: 'published', publishedAt: { $lte: new Date() } } },
+      { $unwind: '$tags' },
+      { $group: { _id: '$tags', count: { $sum: 1 } } },
+      { $sort: { count: -1, _id: 1 } },
+      { $limit: 20 }
+    ]);
+    res.json(rows.map(r => ({ tag: r._id, count: r.count })));
+  } catch (e) { next(e); }
+});
+
 router.get('/admin/all', adminAuth, async(req,res,next)=>{try{const filter={};if(['draft','published'].includes(req.query.status))filter.status=req.query.status;const items=await Article.find(filter).sort({updatedAt:-1}).limit(500).lean();res.json({items});}catch(e){next(e);}});
 router.get('/admin/:id', adminAuth, async(req,res,next)=>{try{const item=await Article.findById(req.params.id);if(!item)return res.status(404).json({error:'Article not found'});res.json(item);}catch(e){next(e);}});
 router.post('/', adminAuth, async(req,res,next)=>{try{const data=pick(req.body);if(!data.title)return res.status(400).json({error:'Article title is required.'});data.slug=await uniqueSlug(req.body.slug || data.title);if(data.status==='published')data.publishedAt=req.body.publishedAt ? new Date(req.body.publishedAt) : new Date();const item=await Article.create(data);res.status(201).json(item);}catch(e){if(e.code===11000)return res.status(409).json({error:'This slug is already in use.'});next(e);}});
