@@ -449,7 +449,7 @@ function feature(a){
  </a>`;
 }
 
-async function loadArticles(reset=true){
+async function loadArticles(reset=true,skipSync=false){
 if(reset){page=1;articles=[];syncUrl()}
  const grid=$('#articleGrid');
  grid.innerHTML='<div class="empty">Loading stories...</div>';
