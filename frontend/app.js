@@ -2,6 +2,21 @@ const API='/api';
 const load=k=>{try{const v=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(v)?v:[]}catch{return[]}};
 let products=[], activeFilter='All', cart=load('zenzy-cart'), wishlist=load('zenzy-wishlist');
 const $=s=>document.querySelector(s);
+const PAGE=(()=>{const p=location.pathname.split('/').filter(Boolean)[0]||'';return['shop','collections','our-story','book-a-visit'].includes(p)?p:'home'})();
+const HEADS={shop:['CURATED FOR YOU','Shop <em>all.</em>','Everyday pieces for women, men and essentials.','Shop all'],collections:['EXPLORE YOUR STYLE','The <em>collections.</em>','Choose a collection to start shopping.','Collections'],'our-story':['A LITTLE ABOUT US','Our <em>story.</em>','More than fashion. It is your expression.','Our story'],'book-a-visit':['PERSONAL SHOPPING','Book a <em>visit.</em>','Store visits, styling consultations and bulk-order enquiries.','Book a visit']};
+function applyPage(){
+ document.querySelectorAll('[data-page]').forEach(el=>el.classList.toggle('is-hidden',!el.dataset.page.split(' ').includes(PAGE)));
+ document.querySelectorAll('#mainNav a[data-nav]').forEach(a=>a.classList.toggle('active',a.dataset.nav===PAGE));
+ const ph=$('#pageHead'),h=HEADS[PAGE];if(!ph||!h)return;
+ ph.innerHTML=`<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <span>${h[3]}</span></nav><p class="eyebrow">${h[0]}</p><h1>${h[1]}</h1><p>${h[2]}</p>`;
+ ph.classList.remove('is-hidden');
+}
+function initFromUrl(){
+ const p=new URLSearchParams(location.search),c=p.get('category');
+ if(['Women','Men','Essentials'].includes(c)){activeFilter=c;document.querySelectorAll('.filter').forEach(b=>b.classList.toggle('active',b.dataset.filter===c))}
+ if(p.get('q'))$('#searchInput').value=p.get('q');
+ if(p.get('focus')==='search')$('#searchInput').focus();
+}
 const money=n=>'₹'+Number(n).toLocaleString('en-IN');
 const toast=msg=>{const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)};
 const save=()=>{localStorage.setItem('zenzy-cart',JSON.stringify(cart));localStorage.setItem('zenzy-wishlist',JSON.stringify(wishlist));renderCart();updateCounts()};
