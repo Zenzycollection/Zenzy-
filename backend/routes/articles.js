@@ -28,6 +28,12 @@ router.get('/', async (req, res, next) => {
       filter.tags = safe(req.query.tag, 40);
     }
 
+    if (req.query.author) {
+      const names = await Article.distinct('author', { status: 'published' });
+      const hit = names.find(n => slugify(n) === slugify(req.query.author));
+      filter.author = hit || '\u0000none';
+    }
+
     if (req.query.featured === '1') {
       filter.featured = true;
     }
