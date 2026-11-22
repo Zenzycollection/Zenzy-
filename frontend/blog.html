@@ -465,7 +465,7 @@ if(reset){page=1;articles=[];if(!skipSync)syncUrl()}
   $('#resultCount').textContent=`${d.total} STORIES FOUND`;
   grid.innerHTML=articles.length?articles.map(card).join(''):'<div class="empty"><h2>No stories found.</h2><p>Try another search or category.</p><button class="btn" onclick="clearFilters()">CLEAR FILTERS</button></div>';
   $('#loadMore').style.display=page<pages?'block':'none';
-  if(reset)$('#featuredGrid').innerHTML=articles.filter(a=>a.featured).slice(0,3).length
+  if(false)$('#featuredGrid').innerHTML=articles.filter(a=>a.featured).slice(0,3).length
    ? (()=>{const f=articles.filter(a=>a.featured).slice(0,3);return `<div>${feature(f[0])}</div><div class="feature-side">${f.slice(1).map(a=>`<div class="story-card"><div class="story-image">${a.coverImage?`<img src="${esc(a.coverImage)}" alt="${esc(a.coverImageAlt||a.title)}" loading="lazy">`:''}</div><div><div class="meta">${esc(a.category)}</div><h3>${esc(a.title)}</h3><a class="read-link" href="/blog/${encodeURIComponent(a.slug)}">READ STORY ↗</a></div></div>`).join('')}</div>`})()
    :'<div class="empty">Featured stories will appear here.</div>';
   reveal();
