@@ -17,9 +17,23 @@ router.get('/', async (req, res, next) => {
       publishedAt: { $lte: new Date() }
     };
 
-    if (req.query.category) {
-      filter.category = safe(req.query.category, 60);
+        if (req.query.category) {
+      filter.category = resolveCategory(safe(req.query.category, 60));
     }
+
+    if (req.query.tag) {
+      filter.tags = safe(req.query.tag, 40);
+    }
+
+    if (req.query.featured === '1') {
+      filter.featured = true;
+    }
+
+    const sort = req.query.sort === 'trending'
+      ? { views: -1, publishedAt: -1 }
+      : req.query.sort === 'latest'
+        ? { publishedAt: -1 }
+        : { featured: -1, publishedAt: -1 };
 
     if (req.query.q) {
       const keyword = safe(req.query.q, 80);
