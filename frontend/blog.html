@@ -351,7 +351,7 @@ const API='/api';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const date=s=>s?new Date(s).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';
-const reading=a=>Math.max(1,Math.ceil((a.content||'').replace(/<[^>]*>/g,' ').split(/\s+/).filter(Boolean).length/200));
+const reading=a=>a.readingTime||Math.max(1,Math.ceil((a.content||'').replace(/<[^>]*>/g,' ').split(/\s+/).filter(Boolean).length/200));
 let articles=[],category='',query='',page=1,pages=1;
 
 function card(a){
