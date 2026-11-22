@@ -6,7 +6,7 @@ router.post('/login', async (req, res) => {
   const password = String(req.body?.password || '');
   if (!process.env.ADMIN_EMAIL || !(process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_PASSWORD) || !process.env.JWT_SECRET) return res.status(503).json({ error: 'Admin credentials are not configured. Set ADMIN_EMAIL, ADMIN_PASSWORD and JWT_SECRET.' });
   const emailOk = email === process.env.ADMIN_EMAIL.toLowerCase();
-  const passOk = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH);
+  const passOk = process.env.ADMIN_PASSWORD_HASH ? await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH) : (() => { const a = Buffer.from(password), b = Buffer.from(process.env.ADMIN_PASSWORD); return a.length === b.length && require('crypto').timingSafeEqual(a, b); })();
   if (!emailOk || !passOk) return res.status(401).json({ error: 'Incorrect email or password.' });
   const token = jwt.sign({ role: 'admin', email }, process.env.JWT_SECRET, { expiresIn: '8h' });
   res.json({ token, expiresIn: '8h', user: { email, role: 'admin' } });
