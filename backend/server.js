@@ -57,7 +57,7 @@ app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
 
 app.use(express.static(FRONT));
 app.get('/admin', (req, res) => res.sendFile(path.join(FRONT, 'admin.html')));
-app.get(['/blog', '/blog/:slug'], (req, res) => res.sendFile(path.join(FRONT, 'blog.html')));
+app.use(require('./routes/seo')(connectDb, FRONT));
 app.use((err, req, res, next) => {
   console.error(err);
   const status = err.status && err.status < 500 ? err.status : 500;
