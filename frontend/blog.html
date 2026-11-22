@@ -516,7 +516,11 @@ async function showArticle(slug){
   if(!link){link=document.createElement('link');link.rel='canonical';document.head.appendChild(link)}
   link.href=canonical;
   const wordCount=(a.content||'').replace(/<[^>]*>/g,' ').split(/\s+/).filter(Boolean).length;
-  const toc=[...(a.content||'').matchAll(/<h([23])[^>]*>(.*?)<\/h[23]>/gi)];
+  const toc=[];
+  const updated=a.updatedAt&&a.publishedAt&&(new Date(a.updatedAt)-new Date(a.publishedAt))>864e5?` · UPDATED ${date(a.updatedAt).toUpperCase()}`:'';
+  const pageUrl=encodeURIComponent(location.href.split('?')[0]),pageTitle=encodeURIComponent(a.title);
+  const rel=a.related||[];
+  let picks=[];try{const pr=await fetch(API+'/products');if(pr.ok)picks=(await pr.json()).slice(0,3)}catch(e){}
   const content=(a.content||'').replace(/<h([23])([^>]*)>(.*?)<\/h[23]>/gi,(m,n,attrs,title)=>{
    const id='section-'+Math.random().toString(36).slice(2,9);
    toc.find(x=>x[0]===m).id=id;
