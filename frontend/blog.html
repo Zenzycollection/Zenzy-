@@ -353,7 +353,11 @@ const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const date=s=>s?new Date(s).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';
 const reading=a=>a.readingTime||Math.max(1,Math.ceil((a.content||'').replace(/<[^>]*>/g,' ').split(/\s+/).filter(Boolean).length/200));
 let articles=[],category='',query='',page=1,pages=1;
-
+const slugOf=n=>String(n||'').toLowerCase().replace(/'/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function syncUrl(){const p=new URLSearchParams();if(category)p.set('category',slugOf(category));if(query)p.set('q',query);const u=location.pathname+(p.toString()?'?'+p:'');if(u!==location.pathname+location.search)history.pushState(null,'',u)}
+function readUrl(){const p=new URLSearchParams(location.search);const c=slugOf(p.get('category'));const btn=[...document.querySelectorAll('.category')].find(b=>b.dataset.category&&slugOf(b.dataset.category)===c);category=btn?btn.dataset.category:'';query=(p.get('q')||'').trim();$('#searchInput').value=query;document.querySelectorAll('.category').forEach(b=>b.classList.toggle('active',b.dataset.category===category))}
+window.addEventListener('popstate',()=>{if(!location.pathname.split('/').filter(Boolean)[1]){readUrl();loadArticles()}});
+async function loadTrending(){try{const r=await fetch(API+'/articles?sort=trending&limit=5');const d=await r.json();if(!r.ok)throw Error();$('#trendingList').innerHTML=d.items.length?d.items.map(a=>`<li><div><div class="meta">${esc(a.category)} · ${reading(a)} MIN READ</div><a href="/blog/${encodeURIComponent(a.slug)}">${esc(a.title)}</a></div></li>`).join(''):'<li class="empty">Trending stories will appear here.</li>'}catch(e){$('#trendingList').innerHTML='<li class="empty">Unable to load trending stories.</li>'}}
 function card(a){
  return `<article class="article-card">
  <a href="/blog/${encodeURIComponent(a.slug)}">
