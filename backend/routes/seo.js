@@ -49,7 +49,7 @@ module.exports = function seoRouter(connectDb, frontDir) {
 
   router.get('/sitemap.xml', async (req, res) => {
     const b = base(req);
-    const urls = [{ loc: b + '/' }, { loc: b + '/blog' }];
+    const urls = [{ loc: b + '/' }, { loc: b + '/blog' }, { loc: b + '/lookbook' }, ...Object.keys(PAGES).filter(k => !PAGES[k].noindex).map(k => ({ loc: b + '/blog/' + k })), ...CATEGORIES.map(c => ({ loc: b + '/blog/' + c.slug }))];
     try {
       await connectDb();
       const items = await Article.find(live()).select('slug updatedAt publishedAt').sort({ publishedAt: -1 }).limit(5000).lean();
