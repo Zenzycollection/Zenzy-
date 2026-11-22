@@ -538,7 +538,7 @@ async function showArticle(slug){
     <span class="meta">THE ZENZY JOURNAL</span>
     <button id="shareArticle">SHARE STORY ↗</button>
    </div>
-   ${toc.length?`<aside style="background:#eee7dc;padding:22px;margin:35px 0"><strong>IN THIS STORY</strong><ul>${toc.map(x=>`<li style="margin:10px 0"><a href="#${x.id||''}">${esc(x[2].replace(/<[^>]*>/g,''))}</a></li>`).join('')}</ul></aside>`:''}
+   ${toc.length?`<aside class="toc"><strong>IN THIS STORY</strong><ul>${toc.map(x=>`<li style="margin:10px 0"><a href="#${x.id||''}">${esc(x[2].replace(/<[^>]*>/g,''))}</a></li>`).join('')}</ul></aside>`:''}
    <div class="article-body">${content}</div>
    <div style="border-top:1px solid var(--line);margin-top:55px;padding-top:30px">
     <a href="/blog" class="read-link">← BACK TO THE JOURNAL</a>
