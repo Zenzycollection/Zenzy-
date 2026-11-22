@@ -83,6 +83,13 @@ module.exports = function seoRouter(connectDb, frontDir) {
   });
 
 router.get('/blog/:slug', async (req, res) => {
+    const s = req.params.slug, cat = CATEGORIES.find(c => c.slug === s);
+    if (PAGES[s] || cat) {
+      const b0 = base(req), m = cat
+        ? { title: cat.name + ' | The Zenzy Journal', description: 'Read the latest ' + cat.name + ' stories, styling ideas and guides from The Zenzy Journal.' }
+        : PAGES[s];
+      return res.send(render({ title: m.title, description: m.description, canonical: b0 + '/blog/' + s, noindex: !!m.noindex, schema: [org(b0)].map(o => ({ '@context': 'https://schema.org', ...o })) }));
+    }
     const b = base(req);
     try {
       await connectDb();
