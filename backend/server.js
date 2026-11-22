@@ -21,7 +21,7 @@ function connectDb() {
 const needDb = (req, res, next) => connectDb().then(() => next()).catch(e => { console.error('Mongo error:', e.message); res.status(503).json({ error: 'Database is not configured or unreachable. Set MONGO_URI.' }); });
 
 const orders = [];
-const subscribers = new Set();
+
 const emailOk = v => /^\S+@\S+\.\S+$/.test(v || '');
 
 app.get('/api/health', (req, res) => res.json({ ok: true, db: mongoose.connection.readyState === 1 }));
