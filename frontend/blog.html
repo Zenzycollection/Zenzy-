@@ -620,9 +620,9 @@ async function showArticle(slug){
  }catch(e){$('#app').innerHTML=`<div class="empty"><h2>Story unavailable</h2><p>${esc(e.message)}</p><a class="btn" href="/blog">BACK TO JOURNAL</a></div>`}
 }
 
-const path=location.pathname.split('/').filter(Boolean);
-if(path[0]==='blog'&&path[1])showArticle(decodeURIComponent(path[1]));
-else{readUrl();loadArticles();loadTrending();if(category||query)setTimeout(()=>$('#latest').scrollIntoView(),400)}
+const route=currentPage();
+if(route.article)showArticle(route.article);
+else{readUrl();loadArticles(true,true);loadFeatured();loadTrending()}
 
 </script>
 </body>
