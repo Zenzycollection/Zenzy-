@@ -530,6 +530,24 @@ document.querySelectorAll('[data-quick-category]').forEach(a=>a.onclick=()=>{
 
 $('#searchToggle').onclick=()=>{$('#searchOverlay').classList.add('open');$('#overlaySearch').focus()};
 $('#searchClose').onclick=()=>$('#searchOverlay').classList.remove('open');
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#searchOverlay').classList.remove('open')});
+$('#searchClear').onclick=()=>{clearFilters();$('#searchInput').focus()};
+let sgTimer;
+$('#overlaySearch').addEventListener('input',e=>{
+ clearTimeout(sgTimer);const v=e.target.value.trim(),box=$('#suggestBox');
+ if(v.length<2){box.innerHTML='';return}
+ sgTimer=setTimeout(async()=>{
+  try{
+   const r=await fetch(API+'/articles/suggest?q='+encodeURIComponent(v));const d=await r.json();if(!r.ok)throw Error();
+   const rows=[
+    ...d.categories.map(c=>`<a href="/blog/${c.slug}"><span class="meta">CATEGORY</span>${esc(c.name)}</a>`),
+    ...d.articles.map(a=>`<a href="/blog/${encodeURIComponent(a.slug)}"><span class="meta">${esc(a.category)}</span>${esc(a.title)}</a>`),
+    ...d.tags.map(t=>`<a href="/blog/search?q=${encodeURIComponent(t)}"><span class="meta">TAG</span>${esc(t)}</a>`)
+   ];
+   box.innerHTML=rows.length?rows.join(''):'<p class="meta" style="color:#999">No suggestions. Press Enter to search.</p>';
+  }catch(err){box.innerHTML=''}
+ },250);
+});
 $('#overlaySearch').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=e.target.value.trim();if(v)location.href='/blog/search?q='+encodeURIComponent(v);return}
  if(e.key==='Enter'){
   query=e.target.value.trim();
