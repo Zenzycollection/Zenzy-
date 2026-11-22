@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const Article = require('../models/Article');
 const { CATEGORIES } = require('../utils/categories');
+const { slugify } = require('../utils/content');
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const cut = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).trim() + '…' : s; };
