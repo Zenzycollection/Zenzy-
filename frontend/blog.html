@@ -523,7 +523,7 @@ async function showArticle(slug){
   let picks=[];try{const pr=await fetch(API+'/products');if(pr.ok)picks=(await pr.json()).slice(0,3)}catch(e){}
   const content=(a.content||'').replace(/<h([23])([^>]*)>(.*?)<\/h[23]>/gi,(m,n,attrs,title)=>{
    const id='section-'+(toc.length+1);
-   toc.find(x=>x[0]===m).id=id;
+   toc.push({id,text:title.replace(/<[^>]*>/g,'')});
    return `<h${n} id="${id}"${attrs}>${title}</h${n}>`;
   });
   $('#app').innerHTML=`
