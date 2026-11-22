@@ -19,4 +19,6 @@ function readingTime(html) {
   const words = String(html || '').replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.ceil(words / 200));
 }
-module.exports = { CATEGORIES, resolveCategory, readingTime };
+const PAGE_SLUGS = ['editors-picks', 'latest', 'categories', 'search', 'author', 'category', 'lookbook'];
+const RESERVED_SLUGS = new Set([...CATEGORIES.map(c => c.slug), ...PAGE_SLUGS]);
+module.exports = { CATEGORIES, PAGE_SLUGS, RESERVED_SLUGS, resolveCategory, readingTime };
