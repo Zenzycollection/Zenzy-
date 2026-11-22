@@ -7,7 +7,7 @@ const Subscriber = require('../models/Subscriber');
 const Booking = require('../models/Booking');
 const parseDate = v => { const d = v ? new Date(v) : null; return d && !isNaN(d) ? d : null; };
 const safe = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
-async function uniqueSlug(base, excludeId) { const root = slugify(base) || 'style-story'; let slug = root, i = 2; while (await Article.exists({ slug, ...(excludeId ? { _id: { $ne: excludeId } } : {}) })) slug = `${root}-${i++}`; return slug; }
+async function uniqueSlug(base, excludeId) { let root = slugify(base) || 'style-story'; if (RESERVED_SLUGS.has(root)) root += '-story'; let slug = root, i = 2; while (await Article.exists({ slug, ...(excludeId ? { _id: { $ne: excludeId } } : {}) })) slug = `${root}-${i++}`; return slug; }
 function pick(body) { const content = cleanHtml(body.content); const tags = Array.isArray(body.tags) ? body.tags : String(body.tags || '').split(','); return { title: safe(body.title,180), excerpt: safe(body.excerpt,500), content, content, readingTime: readingTime(content), category: resolveCategory(safe(body.category || 'Lifestyle',60)), tags: tags.map(x => safe(x,40)).filter(Boolean).slice(0,15), author: safe(body.author || 'Zenzy Editorial',80), coverImage: safe(body.coverImage,800), coverImageAlt: safe(body.coverImageAlt,200), seoTitle: safe(body.seoTitle,70), metaDescription: safe(body.metaDescription,180), focusKeyword: safe(body.focusKeyword,100), canonicalUrl: /^https?:\/\//i.test(body.canonicalUrl || '') ? safe(body.canonicalUrl,500) : '', featured: !!body.featured, status: body.status === 'published' ? 'published' : 'draft' }; }
 
 router.get('/', async (req, res, next) => {
