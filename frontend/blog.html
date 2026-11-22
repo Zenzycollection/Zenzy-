@@ -522,7 +522,7 @@ async function showArticle(slug){
   const rel=a.related||[];
   let picks=[];try{const pr=await fetch(API+'/products');if(pr.ok)picks=(await pr.json()).slice(0,3)}catch(e){}
   const content=(a.content||'').replace(/<h([23])([^>]*)>(.*?)<\/h[23]>/gi,(m,n,attrs,title)=>{
-   const id='section-'+Math.random().toString(36).slice(2,9);
+   const id='section-'+(toc.length+1);
    toc.find(x=>x[0]===m).id=id;
    return `<h${n} id="${id}"${attrs}>${title}</h${n}>`;
   });
