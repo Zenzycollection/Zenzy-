@@ -83,6 +83,28 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+const LIVE = () => ({ status: 'published', publishedAt: { $lte: new Date() } });
+
+router.get('/suggest', async (req, res, next) => {
+  try {
+    const q = safe(req.query.q, 60);
+    if (q.length < 2) return res.json({ articles: [], categories: [], tags: [] });
+    const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const [articles, tagRows] = await Promise.all([
+      Article.find({ ...LIVE(), $or: [{ title: rx }, { tags: rx }] }).select('title slug category').sort({ views: -1, publishedAt: -1 }).limit(5).lean(),
+      Article.aggregate([{ $match: LIVE() }, { $unwind: '$tags' }, { $match: { tags: rx } }, { $group: { _id: '$tags', count: { $sum: 1 } } }, { $sort: { count: -1 } }, { $limit: 4 }])
+    ]);
+    res.json({ articles, categories: CATEGORIES.filter(c => rx.test(c.name)).slice(0, 3), tags: tagRows.map(t => t._id) });
+  } catch (e) { next(e); }
+});
+
+router.get('/meta/authors', async (req, res, next) => {
+  try {
+    const rows = await Article.aggregate([{ $match: LIVE() }, { $group: { _id: '$author', count: { $sum: 1 } } }, { $sort: { count: -1, _id: 1 } }]);
+    res.json(rows.map(r => ({ name: r._id, slug: slugify(r._id), count: r.count })));
+  } catch (e) { next(e); }
+});
+
 router.get('/meta/categories', async (req, res, next) => {
   try {
     const rows = await Article.aggregate([
