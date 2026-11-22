@@ -429,7 +429,7 @@ async function loadFeatured(){
  }catch(e){$('#featuredGrid').innerHTML='<div class="empty">Unable to load featured stories.</div>'}
 }
   function readUrl(){const cp=currentPage();category=cp.category||'';query=(new URLSearchParams(location.search).get('q')||'').trim();$('#searchInput').value=query;document.querySelectorAll('.category').forEach(b=>b.classList.toggle('active',b.dataset.category===category));applyPage()}
-window.addEventListener('popstate',()=>{if(!location.pathname.split('/').filter(Boolean)[1]){readUrl();loadArticles()}});
+window.addEventListener('popstate',()=>{if(currentPage().article){location.reload();return}readUrl();loadArticles(true,true)});
 async function loadTrending(){try{const r=await fetch(API+'/articles?sort=trending&limit=5');const d=await r.json();if(!r.ok)throw Error();$('#trendingList').innerHTML=d.items.length?d.items.map(a=>`<li><div><div class="meta">${esc(a.category)} · ${reading(a)} MIN READ</div><a href="/blog/${encodeURIComponent(a.slug)}">${esc(a.title)}</a></div></li>`).join(''):'<li class="empty">Trending stories will appear here.</li>'}catch(e){$('#trendingList').innerHTML='<li class="empty">Unable to load trending stories.</li>'}}
 function card(a){
  return `<article class="article-card">
