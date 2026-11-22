@@ -8,6 +8,12 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 const cut = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).trim() + '…' : s; };
 const ld = o => '<script type="application/ld+json">' + JSON.stringify(o).replace(/</g, '\\u003c') + '</script>';
 const live = () => ({ status: 'published', publishedAt: { $lte: new Date() } });
+const PAGES = {
+  'editors-picks': { title: 'Editor\u2019s Picks | The Zenzy Journal', description: 'Handpicked fashion stories and the most-read articles from The Zenzy Journal.' },
+  latest: { title: 'Latest Stories | The Zenzy Journal', description: 'Every new fashion story, trend report and styling guide from The Zenzy Journal, newest first.' },
+  categories: { title: 'Categories | The Zenzy Journal', description: 'Browse The Zenzy Journal by topic: men\u2019s and women\u2019s fashion, trends, streetwear, style guides and more.' },
+  search: { title: 'Search | The Zenzy Journal', description: 'Search fashion stories by title, keyword or category.', noindex: true }
+};
 
 module.exports = function seoRouter(connectDb, frontDir) {
   const router = express.Router();
