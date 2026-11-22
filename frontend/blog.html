@@ -524,7 +524,7 @@ async function showArticle(slug){
   if(!r.ok)throw Error(a.error||'Article not found');
   document.title=(a.seoTitle||a.title)+' | The Zenzy Journal';
   document.querySelector('meta[name="description"]').content=a.metaDescription||a.excerpt||'Fashion stories from Zenzy Collection';
-  const canonical=a.canonicalUrl||location.href;
+  const canonical=a.canonicalUrl||(location.origin+location.pathname);
   let link=document.querySelector('link[rel="canonical"]');
   if(!link){link=document.createElement('link');link.rel='canonical';document.head.appendChild(link)}
   link.href=canonical;
