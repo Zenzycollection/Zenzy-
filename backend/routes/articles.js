@@ -52,7 +52,7 @@ router.get('/', async (req, res, next) => {
     const [items, total] = await Promise.all([
       Article.find(filter)
         .select('-content')
-        .sort({ featured: -1, publishedAt: -1 })
+.sort(sort)
         .skip((page - 1) * limit)
         .limit(limit)
         .lean(),
