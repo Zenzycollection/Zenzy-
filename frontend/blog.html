@@ -530,7 +530,7 @@ document.querySelectorAll('[data-quick-category]').forEach(a=>a.onclick=()=>{
 
 $('#searchToggle').onclick=()=>{$('#searchOverlay').classList.add('open');$('#overlaySearch').focus()};
 $('#searchClose').onclick=()=>$('#searchOverlay').classList.remove('open');
-$('#overlaySearch').addEventListener('keydown',e=>{
+$('#overlaySearch').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=e.target.value.trim();if(v)location.href='/blog/search?q='+encodeURIComponent(v);return}
  if(e.key==='Enter'){
   query=e.target.value.trim();
   $('#searchInput').value=query;
