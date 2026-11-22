@@ -388,8 +388,47 @@ const date=s=>s?new Date(s).toLocaleDateString('en-IN',{day:'numeric',month:'sho
 const reading=a=>a.readingTime||Math.max(1,Math.ceil((a.content||'').replace(/<[^>]*>/g,' ').split(/\s+/).filter(Boolean).length/200));
 let articles=[],category='',query='',page=1,pages=1;
 const slugOf=n=>String(n||'').toLowerCase().replace(/'/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-function syncUrl(){const p=new URLSearchParams();if(category)p.set('category',slugOf(category));if(query)p.set('q',query);const u=location.pathname+(p.toString()?'?'+p:'');if(u!==location.pathname+location.search)history.pushState(null,'',u)}
-function readUrl(){const p=new URLSearchParams(location.search);const c=slugOf(p.get('category'));const btn=[...document.querySelectorAll('.category')].find(b=>b.dataset.category&&slugOf(b.dataset.category)===c);category=btn?btn.dataset.category:'';query=(p.get('q')||'').trim();$('#searchInput').value=query;document.querySelectorAll('.category').forEach(b=>b.classList.toggle('active',b.dataset.category===category))}
+const SECTION_PAGES=['editors-picks','latest','categories','search'];
+const HEADS={
+ 'editors-picks':["THE EDITOR'S SELECTION","Editor's <i>picks.</i>","Handpicked stories and what everyone is reading right now.","Editor's Picks"],
+ latest:["FRESH FROM THE JOURNAL","Latest <i>stories.</i>","Every story from the Journal, newest first.","Latest Stories"],
+ categories:["EXPLORE THE JOURNAL","All <i>categories.</i>","Choose a topic to see its stories.","Categories"],
+ lookbook:["VISUAL INSPIRATION","The style <i>lookbook.</i>","Outfits, edits and ideas worth saving.","Lookbook"],
+ search:["SEARCH THE JOURNAL","Search <i>results.</i>","Find stories by title, keyword or category.","Search"]
+};
+function currentPage(){
+ const p=location.pathname.split('/').filter(Boolean);
+ if(p[0]==='lookbook')return{page:'lookbook'};
+ if(p[0]!=='blog'||!p[1])return{page:'home'};
+ const s=decodeURIComponent(p[1]);
+ if(SECTION_PAGES.includes(s))return{page:s};
+ const btn=[...document.querySelectorAll('.category')].find(b=>b.dataset.category&&slugOf(b.dataset.category)===s);
+ if(btn)return{page:'category',category:btn.dataset.category};
+ return{article:s};
+}
+function applyPage(){
+ const cp=currentPage(),pg=cp.page||'home';
+ document.querySelectorAll('[data-page]').forEach(el=>el.classList.toggle('is-hidden',!el.dataset.page.split(' ').includes(pg)));
+ document.querySelectorAll('.nav a[data-nav]').forEach(a=>a.classList.toggle('active',a.dataset.nav===(pg==='category'?'categories':pg)));
+ const ph=$('#pageHead');if(!ph)return;
+ const h=pg==='category'?['CATEGORY',esc(cp.category),'Stories, guides and ideas from this part of the Journal.',cp.category]:HEADS[pg];
+ if(!h){ph.classList.add('is-hidden');return}
+ ph.innerHTML=`<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/blog">The Journal</a> / <span>${esc(h[3])}</span></nav><div class="eyebrow gold">${h[0]}</div><h1>${h[1]}</h1><p>${h[2]}</p>`;
+ ph.classList.remove('is-hidden');document.title=h[3]+' | The Zenzy Journal';
+}
+function syncUrl(){
+ const pg=currentPage().page;let path=location.pathname;
+ if(category)path='/blog/'+slugOf(category);else if(query)path='/blog/search';else if(pg==='category'||pg==='search')path='/blog/latest';
+ const u=path+(query?'?q='+encodeURIComponent(query):'');
+ if(u!==location.pathname+location.search){(path===location.pathname?history.replaceState:history.pushState).call(history,null,'',u);applyPage()}
+}
+async function loadFeatured(){
+ try{const r=await fetch(API+'/articles?featured=1&limit=3');const d=await r.json();if(!r.ok)throw Error();const f=d.items;
+  $('#featuredGrid').innerHTML=f.length?`<div>${feature(f[0])}</div><div class="feature-side">${f.slice(1).map(a=>`<div class="story-card"><div class="story-image">${a.coverImage?`<img src="${esc(a.coverImage)}" alt="${esc(a.coverImageAlt||a.title)}" loading="lazy">`:''}</div><div><div class="meta">${esc(a.category)}</div><h3>${esc(a.title)}</h3><a class="read-link" href="/blog/${encodeURIComponent(a.slug)}">READ STORY ↗</a></div></div>`).join('')}</div>`:'<div class="empty">Featured stories will appear here.</div>';
+  reveal();
+ }catch(e){$('#featuredGrid').innerHTML='<div class="empty">Unable to load featured stories.</div>'}
+}
+  function readUrl(){const p=new URLSearchParams(location.search);const c=slugOf(p.get('category'));const btn=[...document.querySelectorAll('.category')].find(b=>b.dataset.category&&slugOf(b.dataset.category)===c);category=btn?btn.dataset.category:'';query=(p.get('q')||'').trim();$('#searchInput').value=query;document.querySelectorAll('.category').forEach(b=>b.classList.toggle('active',b.dataset.category===category))}
 window.addEventListener('popstate',()=>{if(!location.pathname.split('/').filter(Boolean)[1]){readUrl();loadArticles()}});
 async function loadTrending(){try{const r=await fetch(API+'/articles?sort=trending&limit=5');const d=await r.json();if(!r.ok)throw Error();$('#trendingList').innerHTML=d.items.length?d.items.map(a=>`<li><div><div class="meta">${esc(a.category)} · ${reading(a)} MIN READ</div><a href="/blog/${encodeURIComponent(a.slug)}">${esc(a.title)}</a></div></li>`).join(''):'<li class="empty">Trending stories will appear here.</li>'}catch(e){$('#trendingList').innerHTML='<li class="empty">Unable to load trending stories.</li>'}}
 function card(a){
