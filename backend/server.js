@@ -47,12 +47,6 @@ app.post('/api/contact', (req, res) => {
   if (!String(b.name || '').trim() || !emailOk(b.email) || !String(b.message || '').trim()) return res.status(400).json({ error: 'Please enter name, email and message.' });
   res.json({ message: 'Thanks, we will get back to you soon.' });
 });
-app.post('/api/newsletter', (req, res) => {
-  const email = String((req.body && req.body.email) || '').trim().toLowerCase();
-  if (!emailOk(email)) return res.status(400).json({ error: 'Please enter a valid email.' });
-  subscribers.add(email);
-  res.json({ message: 'Thanks for subscribing!' });
-});
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/articles', needDb, require('./routes/articles'));
