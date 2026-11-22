@@ -11,7 +11,7 @@ const schema = new mongoose.Schema({
   focusKeyword: { type: String, default: '', maxlength: 100 }, canonicalUrl: { type: String, default: '' },
   faqs: [faqSchema], featured: { type: Boolean, default: false },
   status: { type: String, enum: ['draft', 'published'], default: 'draft', index: true },
-  publishedAt: { type: Date, default: null }, views: { type: Number, default: 0 }
+  publishedAt: { type: Date, default: null }, views: { type: Number, default: 0 }, readingTime: { type: Number, default: 1 }
 }, { timestamps: true });
 schema.index({ status: 1, publishedAt: -1 });
 schema.index({ title: 'text', excerpt: 'text', tags: 'text' });
