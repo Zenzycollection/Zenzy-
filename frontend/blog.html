@@ -538,7 +538,7 @@ async function showArticle(slug){
 
 const path=location.pathname.split('/').filter(Boolean);
 if(path[0]==='blog'&&path[1])showArticle(decodeURIComponent(path[1]));
-else loadArticles();
+else{readUrl();loadArticles();loadTrending();if(category||query)setTimeout(()=>$('#latest').scrollIntoView(),400)}
 
 </script>
 </body>
