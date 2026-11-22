@@ -60,6 +60,17 @@ module.exports = function seoRouter(connectDb, frontDir) {
     res.type('application/xml').send(xml);
   });
 
+  router.get('/lookbook', (req, res) => {
+    const b = base(req);
+    res.send(render({ title: 'Lookbook | The Zenzy Journal', description: 'Outfit inspiration, seasonal edits and styling ideas from the Zenzy Collection lookbook.', canonical: b + '/lookbook', schema: [org(b)].map(o => ({ '@context': 'https://schema.org', ...o })) }));
+  });
+
+  router.get('/blog', (req, res, next) => {
+    const old = CATEGORIES.find(c => c.slug === String(req.query.category || '').toLowerCase());
+    if (!old) return next();
+    res.redirect(301, '/blog/' + old.slug + (req.query.q ? '?q=' + encodeURIComponent(String(req.query.q)) : ''));
+  });
+
   router.get('/blog', (req, res) => {
     const b = base(req);
     const cat = CATEGORIES.find(c => c.slug === String(req.query.category || '').toLowerCase());
