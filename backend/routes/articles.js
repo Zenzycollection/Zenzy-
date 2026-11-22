@@ -100,6 +100,23 @@ router.get('/meta/tags', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+router.get('/admin/stats', adminAuth, async (req, res, next) => {
+  try {
+    const now = new Date();
+    const [published, scheduled, drafts, top, byCat, totals, subscribers, newBookings] = await Promise.all([
+      Article.countDocuments({ status: 'published', publishedAt: { $lte: now } }),
+      Article.countDocuments({ status: 'published', publishedAt: { $gt: now } }),
+      Article.countDocuments({ status: 'draft' }),
+      Article.find({ status: 'published' }).select('title slug views category').sort({ views: -1 }).limit(5).lean(),
+      Article.aggregate([{ $match: { status: 'published' } }, { $group: { _id: '$category', articles: { $sum: 1 }, views: { $sum: '$views' } } }, { $sort: { views: -1 } }]),
+      Article.aggregate([{ $group: { _id: null, views: { $sum: '$views' } } }]),
+      Subscriber.countDocuments({ status: 'active' }),
+      Booking.countDocuments({ status: 'NEW' })
+    ]);
+    res.json({ published, scheduled, drafts, totalViews: (totals[0] && totals[0].views) || 0, top, byCategory: byCat.map(c => ({ category: c._id, articles: c.articles, views: c.views })), subscribers, newBookings });
+  } catch (e) { next(e); }
+});
+
 router.get('/admin/all', adminAuth, async(req,res,next)=>{try{const filter={};if(['draft','published'].includes(req.query.status))filter.status=req.query.status;const items=await Article.find(filter).sort({updatedAt:-1}).limit(500).lean();res.json({items});}catch(e){next(e);}});
 router.get('/admin/:id', adminAuth, async(req,res,next)=>{try{const item=await Article.findById(req.params.id);if(!item)return res.status(404).json({error:'Article not found'});res.json(item);}catch(e){next(e);}});
 router.post('/', adminAuth, async(req,res,next)=>{try{const data=pick(req.body);if(!data.title)return res.status(400).json({error:'Article title is required.'});data.slug=await uniqueSlug(req.body.slug || data.title);if(data.status==='published')data.publishedAt=parseDate(req.body.publishedAt) || new Date();const item=await Article.create(data);res.status(201).json(item);}catch(e){if(e.code===11000)return res.status(409).json({error:'This slug is already in use.'});next(e);}});
