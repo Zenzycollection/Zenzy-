@@ -468,7 +468,7 @@ if(reset){page=1;articles=[];if(!skipSync)syncUrl()}
  grid.innerHTML='<div class="empty">Loading stories...</div>';
  try{
   const params=new URLSearchParams({page,limit:9});
-  if(category)params.set('category',category);
+if(category)params.set('category',category);if(currentPage().author)params.set('author',currentPage().author);
   if(query)params.set('q',query);
   const r=await fetch(`${API}/articles?${params}`);
   const d=await r.json();
@@ -508,7 +508,7 @@ $('#searchInput').addEventListener('input',e=>{
 $('#loadMore').onclick=async()=>{
  page++;
  const params=new URLSearchParams({page,limit:9});
- if(category)params.set('category',category);
+if(category)params.set('category',category);if(currentPage().author)params.set('author',currentPage().author);
  if(query)params.set('q',query);
  try{
   const r=await fetch(`${API}/articles?${params}`);
