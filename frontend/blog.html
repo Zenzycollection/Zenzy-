@@ -423,7 +423,8 @@ function applyPage(){
  document.querySelectorAll('[data-page]').forEach(el=>el.classList.toggle('is-hidden',!el.dataset.page.split(' ').includes(pg)));
  document.querySelectorAll('.nav a[data-nav]').forEach(a=>a.classList.toggle('active',a.dataset.nav===(pg==='category'?'categories':pg)));
  const ph=$('#pageHead');if(!ph)return;
- const h=pg==='category'?['CATEGORY',esc(cp.category),'Stories, guides and ideas from this part of the Journal.',cp.category]:HEADS[pg];
+ const nm=(cp.author||'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+ const h=pg==='category'?['CATEGORY',esc(cp.category),'Stories, guides and ideas from this part of the Journal.',cp.category]:pg==='author'?['AUTHOR',esc(nm),'Stories, guides and ideas written by '+esc(nm)+'.',nm]:HEADS[pg];
  if(!h){ph.classList.add('is-hidden');return}
  ph.innerHTML=`<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/blog">The Journal</a> / <span>${esc(h[3])}</span></nav><div class="eyebrow gold">${h[0]}</div><h1>${h[1]}</h1><p>${h[2]}</p>`;
  ph.classList.remove('is-hidden');document.title=h[3]+' | The Zenzy Journal';
