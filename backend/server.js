@@ -18,7 +18,7 @@ function connectDb() {
   if (!dbPromise) dbPromise = mongoose.connect(process.env.MONGO_URI).catch(e => { dbPromise = null; throw e; });
   return dbPromise;
 }
-const needDb = (req, res, next) => connectDb().then(() => next()).catch(() => res.status(503).json({ error: 'Database is not configured or unreachable. Set MONGO_URI.' }));
+const needDb = (req, res, next) => connectDb().then(() => next()).catch(e => { console.error('Mongo error:', e.message); res.status(503).json({ error: 'Database is not configured or unreachable. Set MONGO_URI.' }); });
 
 const orders = [];
 const subscribers = new Set();
