@@ -45,4 +45,4 @@ $('#menuToggle').onclick=()=>$('#mainNav').classList.toggle('open');
 document.querySelectorAll('.category-card').forEach(x=>x.addEventListener('click',()=>{activeFilter=x.dataset.category;document.querySelectorAll('.filter').forEach(b=>b.classList.toggle('active',b.dataset.filter===activeFilter));renderProducts()}));
 $('#year').textContent=new Date().getFullYear();
 if('IntersectionObserver'in window){const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}}),{threshold:.12});document.querySelectorAll('.section,.story-banner,.newsletter').forEach(el=>{el.classList.add('reveal');io.observe(el)})}
-loadProducts();renderCart();
+applyPage();initFromUrl();loadProducts();renderCart();
