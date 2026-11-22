@@ -82,7 +82,7 @@ module.exports = function seoRouter(connectDb, frontDir) {
     res.send(render({ title, description, canonical, noindex: !!req.query.q, schema: [org(b)].map(o => ({ '@context': 'https://schema.org', ...o })) }));
   });
 
-  router.get('/blog/:slug', async (req, res) => {
+router.get('/blog/:slug', async (req, res) => {
     const b = base(req);
     try {
       await connectDb();
