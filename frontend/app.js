@@ -46,3 +46,8 @@ document.querySelectorAll('.category-card').forEach(x=>x.addEventListener('click
 $('#year').textContent=new Date().getFullYear();
 if('IntersectionObserver'in window){const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}}),{threshold:.12});document.querySelectorAll('.section,.story-banner,.newsletter').forEach(el=>{el.classList.add('reveal');io.observe(el)})}
 applyPage();initFromUrl();loadProducts();renderCart();
+fetch('/api/settings').then(r=>r.ok?r.json():null).then(s=>{if(!s)return;
+ const a=document.querySelector('#announce');if(a&&s.announcement)a.textContent=s.announcement;
+ const set=(k,href)=>document.querySelectorAll('[data-s="'+k+'"]').forEach(el=>{if(href){el.href=href;el.target=href.startsWith('mailto:')?'':'_blank';el.rel='noopener noreferrer';el.hidden=false}});
+ set('instagram',s.instagramUrl);set('pinterest',s.pinterestUrl);if(s.contactEmail)set('email','mailto:'+s.contactEmail);
+}).catch(()=>{});
