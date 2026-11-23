@@ -142,7 +142,12 @@ footer{background:#111;color:white;padding:65px 8% 25px}
 .reveal.visible{opacity:1;transform:none}
 .lightbox{position:fixed;inset:0;background:#000e;z-index:110;display:none;align-items:center;justify-content:center;padding:25px}
 .lightbox.open{display:flex}
-.lightbox img{max-width:95%;max-height:90vh}
+.lightbox img{max-width:95%;max-height:90vh;object-fit:contain}
+.article-body img,.lookbook img{cursor:zoom-in}
+@keyframes pageIn{from{opacity:0}to{opacity:1}}
+body{animation:pageIn .35s ease}
+body.leaving{opacity:0;transition:opacity .22s ease}
+@media(prefers-reduced-motion:reduce){body{animation:none}body.leaving{opacity:1;transition:none}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 @keyframes zoom{to{transform:scale(1.07)}}
 @keyframes marquee{to{transform:translateX(-50%)}}
