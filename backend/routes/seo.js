@@ -115,7 +115,12 @@ router.get('/blog/author/:name', async (req, res) => {
       const url = b + '/blog/' + encodeURIComponent(a.slug);
       const canonical = /^https?:\/\//i.test(a.canonicalUrl || '') ? a.canonicalUrl : url;
       const title = (a.seoTitle || a.title) + ' | Zenzy Collection';
-      const description = cut(a.metaDescription || a.excerpt || a.title, 160);
+const description = cut(a.metaDescription || a.excerpt || a.title, 160);
+
+const socialTitle = a.ogTitle || title;
+const socialDescription = cut(
+  a.ogDescription || description, 200
+);
       const image = /^https?:\/\//i.test(a.coverImage || '') ? a.coverImage : '';
       const published = new Date(a.publishedAt).toISOString();
       const schema = [
