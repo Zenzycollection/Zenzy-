@@ -10,6 +10,7 @@ const schema = new mongoose.Schema({
   seoTitle: { type: String, default: '', maxlength: 70 }, metaDescription: { type: String, default: '', maxlength: 180 },
   focusKeyword: { type: String, default: '', maxlength: 100 }, canonicalUrl: { type: String, default: '' },
   faqs: [faqSchema], featured: { type: Boolean, default: false },
+  related: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Article' }],
   status: { type: String, enum: ['draft', 'published'], default: 'draft', index: true },
   publishedAt: { type: Date, default: null }, views: { type: Number, default: 0 }, readingTime: { type: Number, default: 1 }
 }, { timestamps: true });
