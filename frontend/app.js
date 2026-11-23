@@ -51,3 +51,7 @@ fetch('/api/settings').then(r=>r.ok?r.json():null).then(s=>{if(!s)return;
  const set=(k,href)=>document.querySelectorAll('[data-s="'+k+'"]').forEach(el=>{if(href){el.href=href;el.target=href.startsWith('mailto:')?'':'_blank';el.rel='noopener noreferrer';el.hidden=false}});
  set('instagram',s.instagramUrl);set('pinterest',s.pinterestUrl);if(s.contactEmail)set('email','mailto:'+s.contactEmail);
 }).catch(()=>{});
+@keyframes pageIn{from{opacity:0}to{opacity:1}}
+body{animation:pageIn .35s ease}
+body.leaving{opacity:0;transition:opacity .22s ease}
+@media(prefers-reduced-motion:reduce){body{animation:none}body.leaving{opacity:1;transition:none}}
