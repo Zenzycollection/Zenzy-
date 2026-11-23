@@ -28,7 +28,9 @@ module.exports = function seoRouter(connectDb, frontDir) {
       '<title>' + esc(meta.title) + '</title>',
       '<meta name="description" content="' + esc(meta.description) + '">',
       '<link rel="canonical" href="' + esc(meta.canonical) + '">',
-      '<meta name="robots" content="' + (meta.noindex ? 'noindex,follow' : 'index,follow,max-image-preview:large') + '">',
+      '<meta name="robots" content="' + (meta.noindex || meta.noIndex
+  ? 'noindex,follow'
+  : 'index,follow,max-image-preview:large') + '">',
       '<meta property="og:site_name" content="Zenzy Collection">',
       '<meta property="og:type" content="' + (meta.article ? 'article' : 'website') + '">',
       '<meta property="og:title" content="' + esc(meta.title) + '">',
