@@ -192,4 +192,74 @@ $('#anDays').onchange=loadAnalytics;$('#anRefresh').onclick=loadAnalytics;
 async function loadSettings(){try{const r=await fetch('/api/settings');const d=await r.json();if(!r.ok)throw Error(d.error);const f=$('#settingsForm');for(const k of ['announcement','instagramUrl','pinterestUrl','contactEmail'])f.elements[k].value=d[k]||''}catch(x){$('#settingsMsg').textContent=x.message}}
 $('#settingsForm').onsubmit=async e=>{e.preventDefault();try{const r=await fetch('/api/settings',{method:'PUT',headers:{...auth(),'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(e.target)))});const d=await r.json();if(!r.ok)throw Error(d.error);$('#settingsMsg').textContent='Settings saved. They show on the site within a minute.'}catch(x){$('#settingsMsg').textContent=x.message}};
 if(token)showDashboard();
-</script></body></html>
+  function bindCount(name, output, max) {
+  const field = document.querySelector(`[name="${name}"]`);
+  const label = document.getElementById(output);
+
+  if (!field || !label) return;
+
+  const update = () => {
+    label.textContent = `${field.value.length}/${max}`;
+  };
+
+  field.addEventListener('input', update);
+  update();
+}
+
+bindCount('ogTitle', 'ogTitleCount', 70);
+bindCount('ogDescription', 'ogDescCount', 200);
+
+function replaceArticleText(replaceAll) {
+  const editor = document.getElementById('articleContent');
+  const find = document.getElementById('findText').value;
+  const replacement = document.getElementById('replaceText').value;
+  const msg = document.getElementById('replaceMsg');
+
+  if (!find) {
+    msg.textContent = 'Enter text to find.';
+    return;
+  }
+
+  const walker = document.createTreeWalker(
+    editor,
+    NodeFilter.SHOW_TEXT
+  );
+
+  const nodes = [];
+
+  while (walker.nextNode()) {
+    nodes.push(walker.currentNode);
+  }
+
+  let count = 0;
+
+  for (const node of nodes) {
+    if (!node.nodeValue.includes(find)) continue;
+
+    if (replaceAll) {
+      const hits = node.nodeValue.split(find).length - 1;
+
+      node.nodeValue = node.nodeValue
+        .split(find)
+        .join(replacement);
+
+      count += hits;
+    } else {
+      node.nodeValue = node.nodeValue.replace(find, replacement);
+      count = 1;
+      break;
+    }
+  }
+
+  msg.textContent = count
+    ? `${count} replacement(s) made.`
+    : 'No matching text found.';
+}
+
+document.getElementById('replaceOne')
+  ?.addEventListener('click', () => replaceArticleText(false));
+
+document.getElementById('replaceAll')
+  ?.addEventListener('click', () => replaceArticleText(true));
+</script>
+</body></html>
