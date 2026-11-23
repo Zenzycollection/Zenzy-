@@ -214,6 +214,7 @@ async function loadAnalytics(){const days=$('#anDays').value;try{const d=await t
 $('#anDays').onchange=loadAnalytics;$('#anRefresh').onclick=loadAnalytics;
 async function loadSettings(){try{const r=await fetch('/api/settings');const d=await r.json();if(!r.ok)throw Error(d.error);const f=$('#settingsForm');for(const k of ['announcement','instagramUrl','pinterestUrl','contactEmail'])f.elements[k].value=d[k]||''}catch(x){$('#settingsMsg').textContent=x.message}}
 $('#settingsForm').onsubmit=async e=>{e.preventDefault();try{const r=await fetch('/api/settings',{method:'PUT',headers:{...auth(),'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(e.target)))});const d=await r.json();if(!r.ok)throw Error(d.error);$('#settingsMsg').textContent='Settings saved. They show on the site within a minute.'}catch(x){$('#settingsMsg').textContent=x.message}};
+try{const p=JSON.parse(atob(token.split('.')[1]));if(p.exp&&p.exp*1000<Date.now()){localStorage.removeItem('zenzy-admin-token');token=''}}catch(e){}
 if(token)showDashboard();
   function bindCount(name, output, max) {
   const field = document.querySelector(`[name="${name}"]`);
