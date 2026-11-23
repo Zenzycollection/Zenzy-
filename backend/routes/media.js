@@ -35,7 +35,7 @@ router.patch('/admin/:id', adminAuth, async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-router.delete('/admin/:id', adminAuth, async (req, res, next) => {
+router.delete('/admin/:id', adminOnly, async (req, res, next) => {
   try {
     if (!/^[a-f\d]{24}$/i.test(req.params.id)) return res.status(400).json({ error: 'Invalid image id.' });
     const doc = await Media.findById(req.params.id);
