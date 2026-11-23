@@ -24,7 +24,7 @@ router.get('/tags', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-router.patch('/tags/rename', async (req, res, next) => {
+router.patch('/tags/rename', adminOnly, async (req, res, next) => {
   try {
     const from = safe(req.body.from, 40), to = safe(req.body.to, 40);
     if (!from || !to) return res.status(400).json({ error: 'Both the old and new tag are required.' });
