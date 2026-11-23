@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const Article = require('../models/Article');
-const adminAuth = require('../middleware/adminAuth');
+const adminOnly = require('../middleware/adminAuth');
+const ArticleView = require('../models/ArticleView');
 const { CATEGORIES } = require('../utils/categories');
 
 const safe = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
