@@ -587,7 +587,10 @@ document.querySelectorAll('.lookbook img').forEach(img=>img.onclick=()=>{
  $('#lightboxImage').src=img.src;
  $('#lightbox').classList.add('open');
 });
-$('#lightbox').onclick=()=>$('#lightbox').classList.remove('open');
+const closeLightbox=()=>{$('#lightbox').classList.remove('open');document.body.style.overflow=''};
+$('#lightbox').onclick=closeLightbox;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox()});
+document.addEventListener('click',e=>{const img=e.target.closest('.article-body img');if(!img)return;$('#lightboxImage').src=img.currentSrc||img.src;$('#lightboxImage').alt=img.alt||'';$('#lightbox').classList.add('open');document.body.style.overflow='hidden'});
 
 function reveal(){
  const observer=new IntersectionObserver(entries=>entries.forEach(e=>{
