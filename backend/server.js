@@ -67,6 +67,9 @@ app.use(express.static(FRONT));
 app.get('/admin', (req, res) => res.sendFile(path.join(FRONT, 'admin.html')));
 app.use(require('./routes/store')(FRONT));
 app.use(require('./routes/seo')(connectDb, FRONT));
+app.use((req, res) => {
+  res.status(404).send('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Page not found | Zenzy Collection</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#F5F1E9;color:#171717;font-family:Georgia,serif;text-align:center;padding:24px}h1{font-weight:500;font-size:clamp(40px,8vw,84px);margin:0 0 10px}p{font:14px/1.7 Arial,sans-serif;color:#777;margin:0 0 26px}a{font:600 11px Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#171717;border-bottom:1px solid #B99B6B;margin:0 12px;padding-bottom:4px;text-decoration:none}</style></head><body><main><p style="letter-spacing:3px;font-size:11px">ZENZY COLLECTION</p><h1>Page not found.</h1><p>The page you are looking for has moved or does not exist.</p><a href="/">Home</a><a href="/shop">Shop</a><a href="/blog">The Journal</a></main></body></html>');
+});
 app.use((err, req, res, next) => {
   console.error(err);
   const status = err.status && err.status < 500 ? err.status : 500;
