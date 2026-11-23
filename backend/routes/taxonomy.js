@@ -56,6 +56,26 @@ router.patch('/authors/rename', adminOnly, async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+router.get('/analytics', async (req, res, next) => {
+  try {
+    const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30));
+    const end = new Date(new Date().toISOString().slice(0, 10));
+    const start = new Date(end.getTime() - (days - 1) * 86400000);
+    const match = { $match: { day: { $gte: start, $lte: end } } };
+    const [daily, top, cats] = await Promise.all([
+      ArticleView.aggregate([match, { $group: { _id: '$day', views: { $sum: '$views' } } }]),
+      ArticleView.aggregate([match, { $group: { _id: '$article', views: { $sum: '$views' } } }, { $sort: { views: -1 } }, { $limit: 10 }, { $lookup: { from: Article.collection.name, localField: '_id', foreignField: '_id', as: 'a' } }, { $unwind: '$a' }, { $project: { views: 1, title: '$a.title', category: '$a.category', slug: '$a.slug' } }]),
+      ArticleView.aggregate([match, { $group: { _id: '$category', views: { $sum: '$views' } } }, { $sort: { views: -1 } }])
+    ]);
+    const byDay = Object.fromEntries(daily.map(d => [d._id.toISOString().slice(0, 10), d.views]));
+    const series = Array.from({ length: days }, (_, i) => {
+      const k = new Date(start.getTime() + i * 86400000).toISOString().slice(0, 10);
+      return { day: k, views: byDay[k] || 0 };
+    });
+    res.json({ days, total: series.reduce((s, x) => s + x.views, 0), daily: series, top, byCategory: cats.map(c => ({ category: c._id, views: c.views })) });
+  } catch (e) { next(e); }
+});
+
 router.get('/seo', async (req, res, next) => {
   try {
     const items = await Article.find().select('title slug status seoTitle metaDescription focusKeyword coverImage coverImageAlt').sort({ updatedAt: -1 }).limit(500).lean();
