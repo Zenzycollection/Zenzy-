@@ -14,3 +14,4 @@
 .crumbs{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin-bottom:24px}
 .crumbs a:hover{opacity:.55}
 .site-header nav a.active{border-bottom:1px solid var(--ink);padding-bottom:4px}
+[hidden]{display:none!important}
