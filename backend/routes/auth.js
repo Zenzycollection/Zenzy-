@@ -25,7 +25,7 @@ router.post('/login', async (req, res) => {
   if (!accounts.length) return res.status(503).json({ error: 'Admin credentials are not configured. Set ADMIN_EMAIL, ADMIN_PASSWORD_HASH and JWT_SECRET.' });
   const account = accounts.find(a => a.email.toLowerCase() === email);
   const ok = account ? await passwordMatches(password, account.hash, account.plain) : false;
-  if (!ok) return res.status(401).json({ error: 'Incorrect email or password.' });
+if (!ok) { attempts.set(req.ip, [...(attempts.get(req.ip) || []), Date.now()]); return res.status(401).json({ error: 'Incorrect email or password.' }); }
   const token = jwt.sign({ role: account.role, email }, process.env.JWT_SECRET, { expiresIn: '8h' });
   res.json({ token, expiresIn: '8h', user: { email, role: account.role } });
 });
