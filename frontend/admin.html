@@ -71,5 +71,35 @@ $('#taxBody').onclick=async e=>{const d=e.target.dataset;try{
  else if(d.renameAuthor){const to=prompt('Rename author "'+d.renameAuthor+'" to:',d.renameAuthor);if(!to||to===d.renameAuthor)return;await tax('/authors/rename',{method:'PATCH',body:JSON.stringify({from:d.renameAuthor,to})});loadTax('authors')}
  else if(d.saveSeo){const row=e.target.closest('.seo-row'),g=n=>row.querySelector('[name='+n+']').value;await tax('/seo/'+d.saveSeo,{method:'PATCH',body:JSON.stringify({seoTitle:g('seoTitle'),metaDescription:g('metaDescription'),focusKeyword:g('focusKeyword'),coverImageAlt:g('coverImageAlt')})});e.target.textContent='SAVED ✓'}
 }catch(x){alert(x.message)}};
+let savedRange=null,mediaPage=1,mediaT;const pickSel=new Map();
+document.addEventListener('selectionchange',()=>{const s=getSelection();if(s.rangeCount&&$('#articleContent').contains(s.anchorNode))savedRange=s.getRangeAt(0).cloneRange()});
+async function uploadImages(files,alt,msg){let n=0;for(const file of files){const fd=new FormData();fd.append('alt',alt||'');fd.append('image',file);msg.textContent='Uploading '+(++n)+' of '+files.length+'...';const r=await fetch('/api/media/image',{method:'POST',headers:auth(),body:fd});const d=await r.json();if(!r.ok)throw Error(d.error)}msg.textContent='Upload complete.'}
+async function mediaApi(id,method,body){const r=await fetch('/api/media/admin/'+id,{method,headers:{...auth(),'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const d=await r.json();if(!r.ok)throw Error(d.error||'Request failed');return d}
+async function loadMedia(page=1){mediaPage=page;const q=$('#mediaSearch').value.trim();
+ try{const r=await fetch('/api/media/admin/all?page='+page+'&q='+encodeURIComponent(q),{headers:auth()});const d=await r.json();if(!r.ok)throw Error(d.error);
+  $('#mediaGrid').innerHTML=d.items.length?d.items.map(m=>`<div class="mcard"><img src="${esc(m.url)}" alt="${esc(m.alt)}" loading="lazy"><div class="b"><div class="muted">${m.width||'?'}×${m.height||'?'} · ${Math.round((m.bytes||0)/1024)} KB · used ${m.usedIn}×</div><input data-alt="${m._id}" value="${esc(m.alt)}" placeholder="Alt text" style="padding:6px;font-size:12px;margin-top:6px"><button data-save-alt="${m._id}">SAVE ALT</button><button class="btn-light" data-copy="${esc(m.url)}">COPY URL</button><button class="btn-light" data-cover="${m._id}" data-url="${esc(m.url)}">USE AS COVER</button><button class="btn-light" data-del-media="${m._id}">DELETE</button></div></div>`).join(''):'<p class="muted">No images yet. Upload your first image above.</p>';
+  $('#mediaPager').innerHTML=d.pages>1?`<button class="btn-light" ${page<=1?'disabled':''} data-mpage="${page-1}">PREVIOUS</button><button class="btn-light" ${page>=d.pages?'disabled':''} data-mpage="${page+1}">NEXT</button> <span class="muted">Page ${page} of ${d.pages}</span>`:'';
+ }catch(x){$('#mediaGrid').textContent=x.message}}
+$('#mediaFile').onchange=async e=>{try{await uploadImages([...e.target.files],$('#mediaAlt').value,$('#mediaMsg'));e.target.value='';$('#mediaAlt').value='';loadMedia(1)}catch(x){$('#mediaMsg').textContent=x.message}};
+$('#mediaSearch').oninput=()=>{clearTimeout(mediaT);mediaT=setTimeout(()=>loadMedia(1),350)};
+$('#mediaTab').onclick=async e=>{const d=e.target.dataset;try{
+ if(d.mpage)loadMedia(+d.mpage);
+ else if(d.saveAlt){await mediaApi(d.saveAlt,'PATCH',{alt:$(`#mediaTab [data-alt="${d.saveAlt}"]`).value});e.target.textContent='SAVED ✓'}
+ else if(d.copy){await navigator.clipboard.writeText(d.copy);e.target.textContent='COPIED ✓'}
+ else if(d.cover){const f=$('#articleForm');f.elements.coverImage.value=d.url;f.elements.coverImageAlt.value=$(`#mediaTab [data-alt="${d.cover}"]`).value;document.querySelector('[data-tab=articles]').click();$('#articleMsg').textContent='Cover image selected. Save the article to keep it.'}
+ else if(d.delMedia){if(!confirm('Delete this image permanently? Articles that use it will show a broken image.'))return;await mediaApi(d.delMedia,'DELETE');loadMedia(mediaPage)}
+}catch(x){alert(x.message)}};
+async function loadPicker(){try{const r=await fetch('/api/media/admin/all?page=1',{headers:auth()});const d=await r.json();if(!r.ok)throw Error(d.error);$('#pickGrid').innerHTML=d.items.map(m=>`<div class="mcard" data-pick="${m._id}" data-url="${esc(m.url)}" data-alttext="${esc(m.alt)}" style="cursor:pointer"><img src="${esc(m.url)}" alt="${esc(m.alt)}" loading="lazy"></div>`).join('')||'<p class="muted">No images yet. Upload one above.</p>'}catch(x){$('#pickMsg').textContent=x.message}}
+$('#insertImage').onclick=()=>{pickSel.clear();$('#pickCaption').value='';$('#pickMsg').textContent='';$('#mediaDlg').showModal();loadPicker()};
+$('#closeMedia').onclick=()=>$('#mediaDlg').close();
+$('#pickFile').onchange=async e=>{try{await uploadImages([...e.target.files],'',$('#pickMsg'));e.target.value='';loadPicker()}catch(x){$('#pickMsg').textContent=x.message}};
+$('#pickGrid').onclick=e=>{const c=e.target.closest('[data-pick]');if(!c)return;const id=c.dataset.pick;if(pickSel.has(id)){pickSel.delete(id);c.classList.remove('sel')}else{pickSel.set(id,{url:c.dataset.url,alt:c.dataset.alttext});c.classList.add('sel')}};
+$('#pickInsert').onclick=()=>{const imgs=[...pickSel.values()];if(!imgs.length){$('#pickMsg').textContent='Select at least one image.';return}
+ const cap=$('#pickCaption').value.trim(),im=imgs.map(i=>`<img src="${esc(i.url)}" alt="${esc(i.alt)}">`).join(''),cp=cap?`<figcaption>${esc(cap)}</figcaption>`:'';
+ const html=`<figure${imgs.length>1?' class="gallery"':''}>${im}${cp}</figure><p><br></p>`;
+ const box=$('#articleContent');box.focus();const s=getSelection();s.removeAllRanges();
+ if(savedRange&&box.contains(savedRange.commonAncestorContainer))s.addRange(savedRange);else{const r=document.createRange();r.selectNodeContents(box);r.collapse(false);s.addRange(r)}
+ document.execCommand('insertHTML',false,html);$('#mediaDlg').close();
+ $('#articleMsg').textContent=imgs.some(i=>!i.alt)?'Image inserted. Some images have no alt text; add it in the Media library for SEO.':'Image inserted.'};
 if(token)showDashboard();
 </script></body></html>
