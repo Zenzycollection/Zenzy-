@@ -442,7 +442,7 @@ function applyPage(){
 }
 function syncUrl(){
  const pg=currentPage().page;let path=location.pathname;
- if(pg==='author'){}else if(category)path='/blog/'+slugOf(category);else if(query)path='/blog/search';else if(query)path='/blog/search';else if(pg==='category'||pg==='search')path='/blog/latest';
+ if(pg==='author'){}else if(category)path='/blog/'+slugOf(category);else if(query)path='/blog/search';else if(pg==='category'||pg==='search')path='/blog/latest';
  const u=path+(query?'?q='+encodeURIComponent(query):'');
  if(u!==location.pathname+location.search){(path===location.pathname?history.replaceState:history.pushState).call(history,null,'',u);applyPage()}
 }
