@@ -21,6 +21,4 @@ function readingTime(html) {
 }
 const PAGE_SLUGS = ['editors-picks', 'latest', 'categories', 'search', 'author', 'category', 'lookbook'];
 const RESERVED_SLUGS = new Set([...CATEGORIES.map(c => c.slug), ...PAGE_SLUGS]);
-const PAGE_SLUGS = ['editors-picks', 'latest', 'categories', 'search', 'author', 'category', 'lookbook'];
-const RESERVED_SLUGS = new Set([...CATEGORIES.map(c => c.slug), ...PAGE_SLUGS]);
 module.exports = { CATEGORIES, PAGE_SLUGS, RESERVED_SLUGS, resolveCategory, readingTime };
