@@ -131,7 +131,8 @@ const socialDescription = cut(
           { '@type': 'ListItem', position: 1, name: 'Home', item: b + '/' },
           { '@type': 'ListItem', position: 2, name: 'The Zenzy Journal', item: b + '/blog' },
           { '@type': 'ListItem', position: 3, name: a.title, item: url }
-        ] }
+                ] },
+        ...((a.faqs || []).filter(f => f.q && f.a).length ? [{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: (a.faqs || []).filter(f => f.q && f.a).map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }] : [])
       ];
       res.send(render({
   title,
