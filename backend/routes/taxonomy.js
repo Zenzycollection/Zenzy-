@@ -33,7 +33,7 @@ router.patch('/tags/rename', adminOnly, async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-router.delete('/tags/:tag', async (req, res, next) => {
+router.delete('/tags/:tag', adminOnly, async (req, res, next) => {
   try {
     const r = await Article.updateMany({ tags: safe(req.params.tag, 40) }, { $pull: { tags: safe(req.params.tag, 40) } });
     res.json({ message: 'Tag removed from ' + r.modifiedCount + ' articles.' });
