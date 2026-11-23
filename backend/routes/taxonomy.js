@@ -7,7 +7,7 @@ const { CATEGORIES } = require('../utils/categories');
 const safe = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
 const isId = v => /^[a-f\d]{24}$/i.test(String(v || ''));
 
-router.use(adminAuth);
+router.use(adminOnly.staff);
 
 router.get('/categories', async (req, res, next) => {
   try {
