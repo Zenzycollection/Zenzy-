@@ -34,7 +34,7 @@ module.exports = function seoRouter(connectDb, frontDir) {
       '<meta property="og:site_name" content="Zenzy Collection">',
       '<meta property="og:type" content="' + (meta.article ? 'article' : 'website') + '">',
       '<meta property="og:title" content="' + esc(meta.ogTitle || meta.title) + '">',
-      '<meta property="og:description" content="' + esc(meta.description) + '">',
+      '<meta property="og:description" content="' + esc(meta.ogDescription || meta.description) + '">',
       '<meta property="og:url" content="' + esc(meta.canonical) + '">',
       meta.image ? '<meta property="og:image" content="' + esc(meta.image) + '">' : '',
       '<meta name="twitter:card" content="' + (meta.image ? 'summary_large_image' : 'summary') + '">',
