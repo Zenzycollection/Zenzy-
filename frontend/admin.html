@@ -58,7 +58,7 @@ $('#refreshOverview').onclick=loadOverview;
 let relatedCache=[];
 async function fillRelated(selected){try{if(!relatedCache.length){const r=await fetch('/api/articles/admin/all',{headers:auth()});relatedCache=(await r.json()).items||[]}const sel=new Set((selected||[]).map(String)),cur=$('#articleForm [name=id]').value;$('#relatedSelect').innerHTML=relatedCache.filter(a=>a._id!==cur).map(a=>`<option value="${a._id}" ${sel.has(a._id)?'selected':''}>${esc(a.title)}</option>`).join('')}catch(e){}}
 async function tax(path,opt={}){const r=await fetch('/api/taxonomy'+path,{...opt,headers:{...auth(),'Content-Type':'application/json'}});const d=await r.json();if(!r.ok)throw Error(d.error||'Request failed');return d}
-function showExtra(t){const ex=['categories','tags','authors','seo'].includes(t);$('#taxTab').classList.toggle('hidden',!ex);$('#mediaTab').classList.toggle('hidden',t!=='media');if(ex)loadTax(t);if(t==='media')loadMedia(1)}
+function showExtra(t){const ex=['categories','tags','authors','seo'].includes(t);$('#taxTab').classList.toggle('hidden',!ex);$('#mediaTab').classList.toggle('hidden',t!=='media');$('#analyticsTab').classList.toggle('hidden',t!=='analytics');$('#settingsTab').classList.toggle('hidden',t!=='settings');if(ex)loadTax(t);if(t==='media')loadMedia(1);if(t==='analytics')loadAnalytics();if(t==='settings')loadSettings()}
 async function loadTax(t){
  const body=$('#taxBody');$('#taxTitle').textContent={categories:'Categories',tags:'Tags',authors:'Authors',seo:'SEO manager'}[t];body.textContent='Loading...';
  try{
