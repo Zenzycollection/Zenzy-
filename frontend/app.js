@@ -51,7 +51,12 @@ fetch('/api/settings').then(r=>r.ok?r.json():null).then(s=>{if(!s)return;
  const set=(k,href)=>document.querySelectorAll('[data-s="'+k+'"]').forEach(el=>{if(href){el.href=href;el.target=href.startsWith('mailto:')?'':'_blank';el.rel='noopener noreferrer';el.hidden=false}});
  set('instagram',s.instagramUrl);set('pinterest',s.pinterestUrl);if(s.contactEmail)set('email','mailto:'+s.contactEmail);
 }).catch(()=>{});
-@keyframes pageIn{from{opacity:0}to{opacity:1}}
-body{animation:pageIn .35s ease}
-body.leaving{opacity:0;transition:opacity .22s ease}
-@media(prefers-reduced-motion:reduce){body{animation:none}body.leaving{opacity:1;transition:none}}
+document.addEventListener('click',e=>{
+ if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+ const a=e.target.closest('a[href]');if(!a||a.target==='_blank'||a.hasAttribute('download'))return;
+ const u=new URL(a.href,location.href);
+ if(u.origin!==location.origin||(u.pathname===location.pathname&&u.search===location.search))return;
+ if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+ e.preventDefault();document.body.classList.add('leaving');setTimeout(()=>{location.href=u.href},220);
+});
+addEventListener('pageshow',e=>{if(e.persisted)document.body.classList.remove('leaving')});
