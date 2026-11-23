@@ -660,7 +660,11 @@ async function showArticle(slug){
 const route=currentPage();
 if(route.article)showArticle(route.article);
 else{readUrl();loadArticles(true,true);loadFeatured();loadTrending()}
-
+fetch('/api/settings').then(r=>r.ok?r.json():null).then(s=>{if(!s)return;
+ const a=document.querySelector('#announce');if(a&&s.announcement)a.textContent=s.announcement;
+ const set=(k,href)=>document.querySelectorAll('[data-s="'+k+'"]').forEach(el=>{if(href){el.href=href;el.target=href.startsWith('mailto:')?'':'_blank';el.rel='noopener noreferrer';el.hidden=false}});
+ set('instagram',s.instagramUrl);set('pinterest',s.pinterestUrl);if(s.contactEmail)set('email','mailto:'+s.contactEmail);
+}).catch(()=>{});
 </script>
 </body>
 </html>
