@@ -29,10 +29,25 @@ function pick(body) {
     content,
     readingTime: readingTime(content),
 
-    category: resolveCategory(
-      safe(body.category || 'Lifestyle', 60)
-    ), const content = cleanHtml(body.content); const tags = Array.isArray(body.tags) ? body.tags : String(body.tags || '').split(','); return { title: safe(body.title,180), excerpt: safe(body.excerpt,500), content, content, readingTime: readingTime(content), category: resolveCategory(safe(body.category || 'Lifestyle',60)), tags: tags.map(x => safe(x,40)).filter(Boolean).slice(0,15), author: safe(body.author || 'Zenzy Editorial',80), coverImage: safe(body.coverImage,800), coverImageAlt: safe(body.coverImageAlt,200), seoTitle: safe(body.seoTitle,70), metaDescription: safe(body.metaDescription,180), focusKeyword: safe(body.focusKeyword,100), canonicalUrl: /^https?:\/\//i.test(body.canonicalUrl || '') ? safe(body.canonicalUrl,500) : '', featured: !!body.featured, related: (Array.isArray(body.related) ? body.related : []).map(String).filter(id => /^[a-f\d]{24}$/i.test(id)).slice(0, 6), status: body.status === 'published' ? 'published' : 'draft' }; }
-
+        category: resolveCategory(safe(body.category || 'Lifestyle', 60)),
+    tags: tags.map(x => safe(x, 40)).filter(Boolean).slice(0, 15),
+    author: safe(body.author || 'Zenzy Editorial', 80),
+    coverImage: safe(body.coverImage, 800),
+    coverImageAlt: safe(body.coverImageAlt, 200),
+    seoTitle: safe(body.seoTitle, 70),
+    metaDescription: safe(body.metaDescription, 180),
+    focusKeyword: safe(body.focusKeyword, 100),
+    secondaryKeywords: secondaryKeywords.map(x => safe(x, 100)).filter(Boolean).slice(0, 10),
+    canonicalUrl: /^https?:\/\//i.test(body.canonicalUrl || '') ? safe(body.canonicalUrl, 500) : '',
+    ogTitle: safe(body.ogTitle, 70),
+    ogDescription: safe(body.ogDescription, 200),
+    noIndex: !!body.noIndex,
+    faqs: faqs.map(f => ({ q: safe(f && f.q, 300), a: safe(f && f.a, 3000) })).filter(f => f.q && f.a).slice(0, 20),
+    featured: !!body.featured,
+    related: (Array.isArray(body.related) ? body.related : []).map(String).filter(id => /^[a-f\d]{24}$/i.test(id)).slice(0, 6),
+    status: body.status === 'published' ? 'published' : 'draft'
+  };
+}
 router.get('/', async (req, res, next) => {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
