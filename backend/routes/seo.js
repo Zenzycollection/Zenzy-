@@ -131,7 +131,17 @@ const socialDescription = cut(
           { '@type': 'ListItem', position: 3, name: a.title, item: url }
         ] }
       ];
-      res.send(render({ title, description, canonical, image, article: true, schema }));
+      res.send(render({
+  title,
+  description,
+  canonical,
+  image,
+  article: true,
+  noindex: !!a.noIndex,
+  ogTitle: socialTitle,
+  ogDescription: socialDescription,
+  schema
+}));
     } catch (e) {
       console.error('SEO render error:', e.message);
       res.sendFile(path.join(frontDir, 'blog.html'));
