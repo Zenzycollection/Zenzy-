@@ -10,7 +10,11 @@ async function passwordMatches(password, hash, plain) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+const attempts = new Map();
+const blocked = ip => { const now = Date.now(), recent = (attempts.get(ip) || []).filter(t => now - t < 15 * 60 * 1000); attempts.set(ip, recent); return recent.length >= 8; };
+
 router.post('/login', async (req, res) => {
+  if (blocked(req.ip)) return res.status(429).json({ error: 'Too many attempts. Please wait 15 minutes and try again.' });
   const email = String(req.body?.email || '').trim().toLowerCase();
   const password = String(req.body?.password || '');
   if (!process.env.JWT_SECRET) return res.status(503).json({ error: 'Admin credentials are not configured. Set JWT_SECRET, ADMIN_EMAIL and ADMIN_PASSWORD_HASH.' });
