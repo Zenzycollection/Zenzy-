@@ -33,7 +33,7 @@ module.exports = function seoRouter(connectDb, frontDir) {
   : 'index,follow,max-image-preview:large') + '">',
       '<meta property="og:site_name" content="Zenzy Collection">',
       '<meta property="og:type" content="' + (meta.article ? 'article' : 'website') + '">',
-      '<meta property="og:title" content="' + esc(meta.title) + '">',
+      '<meta property="og:title" content="' + esc(meta.ogTitle || meta.title) + '">',
       '<meta property="og:description" content="' + esc(meta.description) + '">',
       '<meta property="og:url" content="' + esc(meta.canonical) + '">',
       meta.image ? '<meta property="og:image" content="' + esc(meta.image) + '">' : '',
