@@ -47,7 +47,7 @@ router.get('/authors', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-router.patch('/authors/rename', async (req, res, next) => {
+router.patch('/authors/rename', adminOnly, async (req, res, next) => {
   try {
     const from = safe(req.body.from, 80), to = safe(req.body.to, 80);
     if (!from || !to) return res.status(400).json({ error: 'Both the old and new author name are required.' });
