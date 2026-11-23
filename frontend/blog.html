@@ -650,7 +650,8 @@ async function showArticle(slug){
     <button id="shareArticle">SHARE STORY ↗</button>
    </div>
    ${toc.length?`<aside class="toc"><strong>IN THIS STORY</strong><ul>${toc.map(x=>`<li><a href="#${x.id}">${esc(x.text)}</a></li>`).join('')}</ul></aside>`:''}
-   <div class="article-body">${content}</div>
+<div class="article-body">${content}</div>
+   ${(a.faqs&&a.faqs.length)?`<section class="faq"><h2>Frequently asked questions</h2>${a.faqs.map(f=>`<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('')}</section>`:''}
    <div style="border-top:1px solid var(--line);margin-top:55px;padding-top:30px">
 <div class="share-row"><span class="meta">SHARE THIS STORY</span><a href="https://wa.me/?text=${pageTitle}%20${pageUrl}" target="_blank" rel="noopener">WHATSAPP</a><a href="https://twitter.com/intent/tweet?text=${pageTitle}&url=${pageUrl}" target="_blank" rel="noopener">X</a><a href="https://www.facebook.com/sharer/sharer.php?u=${pageUrl}" target="_blank" rel="noopener">FACEBOOK</a><button type="button" id="copyLink">COPY LINK</button></div>
     <nav class="prevnext">${a.prev?`<a href="/blog/${encodeURIComponent(a.prev.slug)}"><span class="meta">← PREVIOUS STORY</span><strong>${esc(a.prev.title)}</strong></a>`:'<span></span>'}${a.next?`<a href="/blog/${encodeURIComponent(a.next.slug)}" style="text-align:right"><span class="meta">NEXT STORY →</span><strong>${esc(a.next.title)}</strong></a>`:'<span></span>'}</nav>
