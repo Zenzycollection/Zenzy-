@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const Article = require('../models/Article');
-const adminAuth = require('../middleware/adminAuth');
+const adminOnly = require('../middleware/adminAuth');
+const adminAuth = adminOnly.staff;
+const ArticleView = require('../models/ArticleView');
 const { slugify, cleanHtml } = require('../utils/content');
 const { CATEGORIES, RESERVED_SLUGS, resolveCategory, readingTime } = require('../utils/categories');
 const Subscriber = require('../models/Subscriber');
