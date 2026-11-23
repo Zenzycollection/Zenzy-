@@ -52,7 +52,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/articles', needDb, require('./routes/articles'));
 app.use('/api/newsletter', needDb, require('./routes/newsletter'));
 app.use('/api/bookings', needDb, require('./routes/bookings'));
-app.use('/api/media', require('./routes/media'));
+app.use('/api/media', needDb, require('./routes/media'));
 app.use('/api/taxonomy', needDb, require('./routes/taxonomy'));
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
 
