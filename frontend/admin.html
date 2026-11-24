@@ -535,4 +535,59 @@ bindCount('ogDescription', 'ogDescCount', 200);
   }
 })();
   </script>
+  <script>
+/* ===== Article content AUTO SAVE (sirf ek draft) ===== */
+(function () {
+  const KEY = 'zenzy-article-draft';
+  const $id = id => document.getElementById(id);
+  const editor = $id('articleContent'), form = $id('articleForm');
+  if (!editor || !form) return;
+
+  const status = document.createElement('div');
+  status.className = 'muted';
+  status.style.cssText = 'margin:6px 0 0;font-size:12px';
+  (document.getElementById('articleHtml') || editor).after(status);
+
+  const isNewStory = () => !form.elements.id.value;           // sirf nayi story ka draft
+  const hasText = h => /<img|<table/i.test(h) || h.replace(/<[^>]*>|&nbsp;/g, '').trim() !== '';
+  const time = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  let last = '';
+  function save() {
+    if (!isNewStory()) return;
+    const html = editor.innerHTML;
+    if (html === last) return;
+    try {
+      if (hasText(html)) { localStorage.setItem(KEY, html); status.textContent = '✓ Auto-saved ' + time(); }
+      else { localStorage.removeItem(KEY); status.textContent = ''; }
+      last = html;
+    } catch (e) { status.textContent = 'Auto-save nahi ho paya (storage full/blocked).'; }
+  }
+  function clearDraft() {
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    last = ''; status.textContent = '';
+  }
+
+  /* restore */
+  try {
+    const d = localStorage.getItem(KEY);
+    if (d && isNewStory() && !hasText(editor.innerHTML)) {
+      editor.innerHTML = d; last = d;
+      status.textContent = '↺ Pichhla saved draft wapas aa gaya.';
+    }
+  } catch (e) {}
+
+  /* save triggers */
+  form.addEventListener('input', save);
+  setInterval(save, 3000);                                    // find/replace, toolbar sab cover
+  document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+  window.addEventListener('pagehide', save);
+
+  /* article save hone par / form reset par draft saaf */
+  if (typeof window.resetForm === 'function') {
+    const orig = window.resetForm;
+    window.resetForm = function () { clearDraft(); return orig.apply(this, arguments); };
+  }
+})();
+  </script>
 </body></html>
