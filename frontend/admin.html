@@ -289,5 +289,72 @@ document.getElementById('replaceOne')
 
 document.getElementById('replaceAll')
   ?.addEventListener('click', () => replaceArticleText(true));
+
+/* ===== Markdown paste -> formatted HTML ===== */
+(function () {
+  const editor = document.getElementById('articleContent');
+  if (!editor) return;
+
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  function inline(s) {
+    s = esc(s);
+    s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img src="$2" alt="$1">');
+    s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
+    s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/__(.+?)__/g, '<strong>$1</strong>');
+    s = s.replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g, '$1<em>$2</em>');
+    s = s.replace(/(^|[^\w])_(?!\s)(.+?)_(?!\w)/g, '$1<em>$2</em>');
+    s = s.replace(/`([^`]+)`/g, '$1');
+    return s;
+  }
+
+  function mdToHtml(md) {
+    const lines = md.replace(/\r\n?/g, '\n').split('\n');
+    let html = '', list = null, para = [];
+    const flushPara = () => { if (para.length) { html += '<p>' + inline(para.join(' ')) + '</p>'; para = []; } };
+    const closeList = () => { if (list) { html += '</' + list + '>'; list = null; } };
+
+    for (let raw of lines) {
+      const line = raw.trim();
+      let m;
+      if (!line) { flushPara(); closeList(); continue; }
+      if ((m = line.match(/^(#{1,6})\s+(.*)$/))) {
+        flushPara(); closeList();
+        const lvl = Math.min(m[1].length, 3);
+        html += `<h${lvl}>${inline(m[2].replace(/#+\s*$/, ''))}</h${lvl}>`;
+      } else if (/^(-{3,}|\*{3,}|_{3,})$/.test(line)) {
+        flushPara(); closeList(); html += '<hr>';
+      } else if ((m = line.match(/^>\s?(.*)$/))) {
+        flushPara(); closeList(); html += '<blockquote>' + inline(m[1]) + '</blockquote>';
+      } else if ((m = line.match(/^[-*+]\s+(.*)$/))) {
+        flushPara();
+        if (list !== 'ul') { closeList(); html += '<ul>'; list = 'ul'; }
+        html += '<li>' + inline(m[1]) + '</li>';
+      } else if ((m = line.match(/^\d+[.)]\s+(.*)$/))) {
+        flushPara();
+        if (list !== 'ol') { closeList(); html += '<ol>'; list = 'ol'; }
+        html += '<li>' + inline(m[1]) + '</li>';
+      } else {
+        closeList(); para.push(line);
+      }
+    }
+    flushPara(); closeList();
+    return html;
+  }
+
+  editor.addEventListener('paste', function (e) {
+    const cd = e.clipboardData || window.clipboardData;
+    if (!cd) return;
+    const text = cd.getData('text/plain');
+    if (!text) return;
+    // Sirf tab convert karo jab text me markdown symbols hon
+    const looksMd = /^(#{1,6}\s|>\s|[-*+]\s|\d+[.)]\s)/m.test(text) || /\*\*.+?\*\*|\[.+?\]\(.+?\)/.test(text);
+    if (!looksMd) return;
+    e.preventDefault();
+    document.execCommand('insertHTML', false, mdToHtml(text));
+  });
+})();
 </script>
 </body></html>
