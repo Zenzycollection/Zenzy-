@@ -656,4 +656,60 @@ bindCount('ogDescription', 'ogDescCount', 200);
   }, true);   // capture: purana execCommand wala handler ab nahi chalega
 })();
   </script>
+  <script>
+/* ===== UNDO / REDO for article content ===== */
+(function () {
+  const $id = id => document.getElementById(id);
+  const editor = $id('articleContent'), form = $id('articleForm');
+  if (!editor || !form) return;
+  const bar = $id('insertImage')?.parentElement;
+  if (!bar) return;
+
+  const mk = (txt, id) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn-light'; b.id = id; b.textContent = txt;
+    b.addEventListener('mousedown', e => e.preventDefault());
+    return b;
+  };
+  const undoBtn = mk('↶ UNDO', 'undoBtn'), redoBtn = mk('↷ REDO', 'redoBtn');
+  bar.prepend(undoBtn, redoBtn);
+
+  let hist = [editor.innerHTML], idx = 0, lastId = form.elements.id.value, t;
+  const sync = () => {
+    undoBtn.style.opacity = idx > 0 ? 1 : .4;
+    redoBtn.style.opacity = idx < hist.length - 1 ? 1 : .4;
+  };
+  function snap() {
+    if (form.elements.id.value !== lastId) {            // dusra article khula / reset hua
+      lastId = form.elements.id.value; hist = [editor.innerHTML]; idx = 0; return sync();
+    }
+    const h = editor.innerHTML;
+    if (h === hist[idx]) return;
+    hist = hist.slice(0, idx + 1); hist.push(h);
+    if (hist.length > 100) hist.shift();
+    idx = hist.length - 1; sync();
+  }
+  function go(step) {
+    snap();
+    const n = idx + step;
+    if (n < 0 || n >= hist.length) return;
+    idx = n; editor.innerHTML = hist[idx];
+    editor.dispatchEvent(new Event('input', { bubbles: true }));   // autosave bhi update
+    sync();
+  }
+  undoBtn.onclick = () => go(-1);
+  redoBtn.onclick = () => go(1);
+
+  form.addEventListener('input', () => { clearTimeout(t); t = setTimeout(snap, 400); });
+  setInterval(snap, 1000);          // image insert, find&replace, fix table sab pakad lega
+
+  editor.addEventListener('keydown', e => {               // keyboard shortcuts
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' && !e.shiftKey) { e.preventDefault(); go(-1); }
+    else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); go(1); }
+  });
+  sync();
+})();
+  </script>
 </body></html>
