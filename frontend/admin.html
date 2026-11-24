@@ -421,4 +421,118 @@ bindCount('ogDescription', 'ogDescCount', 200);
 
   
 </script>
+  <script>
+/* ===== Editor extras: PARAGRAPH, LINK, HTML CODE + Find&Replace in code ===== */
+(function () {
+  const $id = id => document.getElementById(id);
+  const editor = $id('articleContent'), imgBtn = $id('insertImage');
+  if (!editor || !imgBtn) return;
+  const bar = imgBtn.parentElement;
+  const msg = $id('replaceMsg');
+  const say = t => { if (msg) msg.textContent = t; };
+  const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escH = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  /* ---- buttons ---- */
+  const mk = (txt, id) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn-light'; b.id = id; b.textContent = txt;
+    b.addEventListener('mousedown', e => e.preventDefault()); // selection na hate
+    return b;
+  };
+  const pBtn = mk('PARAGRAPH', 'fmtParagraph');
+  const linkBtn = mk('🔗 LINK', 'insertLink');
+  const codeBtn = mk('</> HTML', 'toggleHtml');
+  const h1 = bar.querySelector('[data-format="h1"]');
+  h1 ? h1.before(pBtn) : bar.prepend(pBtn);
+  imgBtn.after(linkBtn, codeBtn);
+
+  /* ---- PARAGRAPH ---- */
+  pBtn.onclick = () => { editor.focus(); document.execCommand('formatBlock', false, 'p'); };
+
+  /* ---- INSERT LINK ---- */
+  let saved = null;
+  document.addEventListener('selectionchange', () => {
+    const s = getSelection();
+    if (s.rangeCount && editor.contains(s.anchorNode)) saved = s.getRangeAt(0).cloneRange();
+  });
+  linkBtn.onclick = () => {
+    const range = saved;
+    let url = prompt('Link URL daalo (https://...). Link hatane ke liye khali chhodo:', 'https://');
+    if (url === null) return;
+    url = url.trim();
+    editor.focus();
+    if (range) { const s = getSelection(); s.removeAllRanges(); s.addRange(range); }
+    if (!url || url === 'https://') { document.execCommand('unlink'); return; }
+    if (!/^(https?:\/\/|mailto:|tel:|\/|#)/i.test(url)) url = 'https://' + url;
+    if (/^\s*javascript:/i.test(url)) return alert('Ye link allowed nahi hai.');
+    if (!range || range.collapsed) {
+      const text = prompt('Link ka text kya dikhana hai?', url);
+      if (text === null) return;
+      document.execCommand('insertHTML', false, `<a href="${escH(url)}">${escH(text || url)}</a>&nbsp;`);
+    } else {
+      document.execCommand('createLink', false, url);
+    }
+    editor.querySelectorAll('a[href^="http"]').forEach(a => a.setAttribute('rel', 'noopener'));
+  };
+
+  /* ---- HTML CODE toggle ---- */
+  const ta = document.createElement('textarea');
+  ta.id = 'articleHtml'; ta.spellcheck = false; ta.autocapitalize = 'off';
+  ta.style.cssText = 'display:none;height:420px;max-height:60vh;font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;overflow:auto;background:#fbfaf7';
+  ta.placeholder = '<p>Yahan HTML code likho...</p>';
+  editor.after(ta);
+  let codeMode = false;
+  const pretty = h => h.replace(/(<\/(p|h[1-6]|ul|ol|li|blockquote|table|thead|tbody|tr|figure|div)>)/gi, '$1\n').replace(/\n{2,}/g, '\n').trim();
+
+  function setCode(on) {
+    if (on) { ta.value = pretty(editor.innerHTML); editor.style.display = 'none'; ta.style.display = 'block'; }
+    else { editor.innerHTML = ta.value; ta.style.display = 'none'; editor.style.display = ''; }
+    codeMode = on;
+    codeBtn.textContent = on ? '✎ VISUAL' : '</> HTML';
+    bar.querySelectorAll('button').forEach(b => { if (b !== codeBtn) b.disabled = on; });
+  }
+  codeBtn.onclick = () => setCode(!codeMode);
+  ta.addEventListener('input', () => { editor.innerHTML = ta.value; }); // save hamesha latest code lega
+
+  /* ---- FIND & REPLACE (HTML code ke andar) ---- */
+  function codeReplace(all) {
+    const find = $id('findText').value, rep = $id('replaceText').value;
+    if (!find) return say('Pehle "Find" mein text likho.');
+    const cs = $id('frCase').checked;
+    let count = 0;
+    if (all) {
+      ta.value = ta.value.replace(new RegExp(escRe(find), cs ? 'g' : 'gi'), () => { count++; return rep; });
+    } else {
+      const v = ta.value, hay = cs ? v : v.toLowerCase(), nd = cs ? find : find.toLowerCase();
+      let i = hay.indexOf(nd, ta.selectionEnd || 0);
+      if (i < 0) i = hay.indexOf(nd);               // end tak gaya to shuru se
+      if (i >= 0) {
+        ta.value = v.slice(0, i) + rep + v.slice(i + find.length);
+        ta.focus(); ta.setSelectionRange(i, i + rep.length);
+        count = 1;
+      }
+    }
+    if (!count) return say('Code mein koi match nahi mila.');
+    editor.innerHTML = ta.value;
+    say(all ? `${count} jagah replace hua ✓ (code)` : '1 replace hua ✓ (code)');
+  }
+  const panel = document.querySelector('.fr-panel');
+  if (panel) {
+    panel.addEventListener('click', e => {
+      if (!codeMode) return;
+      const id = e.target.id;
+      if (id === 'replaceOne' || id === 'replaceAll') { e.stopPropagation(); codeReplace(id === 'replaceAll'); }
+    }, true);
+    panel.addEventListener('keydown', e => {
+      if (codeMode && e.key === 'Enter' && (e.target.id === 'findText' || e.target.id === 'replaceText')) {
+        e.preventDefault(); e.stopPropagation(); codeReplace(false);
+      }
+    }, true);
+    $id('fixTables')?.addEventListener('click', () => {
+      setTimeout(() => { if (codeMode) ta.value = pretty(editor.innerHTML); }, 80);
+    });
+  }
+})();
+  </script>
 </body></html>
