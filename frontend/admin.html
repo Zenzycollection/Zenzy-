@@ -590,4 +590,70 @@ bindCount('ogDescription', 'ogDescCount', 200);
   }
 })();
   </script>
+  <script>
+/* ===== FIX: image insert in article content ===== */
+(function () {
+  const $id = id => document.getElementById(id);
+  const editor = $id('articleContent'), btn = $id('pickInsert');
+  if (!editor || !btn) return;
+
+  /* editor ke andar images/figure ki styling */
+  const st = document.createElement('style');
+  st.textContent = `
+    #articleContent img{max-width:100%;height:auto;display:block;margin:12px auto;border-radius:6px}
+    #articleContent figure{margin:16px 0;text-align:center}
+    #articleContent figure.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+    #articleContent figure.gallery img{margin:0;width:100%;object-fit:cover}
+    #articleContent figcaption{font-size:13px;color:#777;margin-top:6px;grid-column:1/-1}`;
+  document.head.appendChild(st);
+
+  /* cursor ki jagah yaad rakho (dialog khulne par selection chali jati hai) */
+  let rng = null;
+  document.addEventListener('selectionchange', () => {
+    const s = getSelection();
+    if (s.rangeCount && editor.contains(s.anchorNode)) rng = s.getRangeAt(0).cloneRange();
+  });
+
+  const escH = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  btn.addEventListener('click', e => {
+    e.stopImmediatePropagation(); e.preventDefault();
+    const msg = $id('pickMsg');
+    const imgs = (typeof pickSel !== 'undefined') ? [...pickSel.values()] : [];
+    if (!imgs.length) { msg.textContent = 'Select at least one image.'; return; }
+
+    const cap = $id('pickCaption').value.trim();
+    const fig = document.createElement('figure');
+    if (imgs.length > 1) fig.className = 'gallery';
+    fig.innerHTML = imgs.map(i => `<img src="${escH(i.url)}" alt="${escH(i.alt)}">`).join('') +
+                    (cap ? `<figcaption>${escH(cap)}</figcaption>` : '');
+    const after = document.createElement('p');
+    after.innerHTML = '<br>';
+
+    /* kahan daalna hai: cursor wale top-level block ke baad, warna end mein */
+    let ref = null;
+    if (rng && editor.contains(rng.commonAncestorContainer)) {
+      let n = rng.endContainer;
+      while (n && n.parentNode !== editor) n = n.parentNode;
+      ref = n && n !== editor ? n : null;
+    }
+    if (ref) { ref.after(fig); fig.after(after); }
+    else { editor.append(fig, after); }
+
+    /* cursor nayi khali line mein */
+    try {
+      const r = document.createRange(); r.setStart(after, 0); r.collapse(true);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); rng = r.cloneRange();
+    } catch (_) {}
+
+    editor.dispatchEvent(new Event('input', { bubbles: true }));   // autosave trigger
+    $id('mediaDlg').close();
+    if (typeof pickSel !== 'undefined') pickSel.clear();
+    fig.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    $id('articleMsg').textContent = imgs.some(i => !i.alt)
+      ? 'Image inserted. Kuch images ka alt text nahi hai, Media library mein add karo (SEO).'
+      : 'Image inserted.';
+  }, true);   // capture: purana execCommand wala handler ab nahi chalega
+})();
+  </script>
 </body></html>
