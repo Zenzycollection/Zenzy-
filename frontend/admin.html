@@ -429,5 +429,109 @@ document.getElementById('fixTables')?.addEventListener('click', () => {
 // Replace All ke baad aur paste ke baad auto-fix
 document.getElementById('replaceAll')?.addEventListener('click', () => setTimeout(fixTables, 0));
 document.getElementById('articleContent')?.addEventListener('paste', () => setTimeout(fixTables, 50));
+.fr-panel{padding:18px;margin-top:16px;background:#faf8f4;border:1px solid #e7e2da}
+.fr-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.fr-head h3{margin:0;font-family:Georgia,serif;font-weight:500}
+.fr-msg{font-size:12px;color:#9b6027;font-weight:600}
+.fr-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fr-check{display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13px;margin:12px 0 0}
+.fr-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.fr-actions button{margin:0;flex:1 1 140px}
+.btn-gold{background:#b78b4b!important;color:#fff}
+.fr-tip{margin:12px 0 0;line-height:1.5}
+.fr-tip code{background:#eee;padding:1px 5px;border-radius:4px}
+@media(max-width:640px){.fr-grid{grid-template-columns:1fr}}
+
+#articleContent table{border-collapse:collapse;width:100%;margin:12px 0;display:block;overflow-x:auto}
+#articleContent th,#articleContent td{border:1px solid #ccc;padding:6px 8px;min-width:90px}
+#articleContent th{background:#eee}
+
+  /* ===== Find & Replace + Fix Table ===== */
+(function () {
+  const $id = id => document.getElementById(id);
+  const editor = $id('articleContent');
+  if (!editor) return;
+  const msg = $id('replaceMsg');
+  const say = t => { if (msg) msg.textContent = t; };
+  const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  function replaceText(all) {
+    const find = $id('findText').value;
+    const rep = $id('replaceText').value;
+    if (!find) return say('Pehle "Find" mein text likho.');
+
+    const re = new RegExp(escRe(find), $id('frCase').checked ? 'g' : 'gi');
+    const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    let count = 0, lastEl = null;
+    for (const node of nodes) {
+      re.lastIndex = 0;
+      if (!re.test(node.nodeValue)) continue;
+      re.lastIndex = 0;
+      if (all) {
+        node.nodeValue = node.nodeValue.replace(re, () => { count++; return rep; });
+        lastEl = node.parentElement;
+      } else {
+        let done = false;
+        node.nodeValue = node.nodeValue.replace(re, m => {
+          if (done) return m;
+          done = true; count = 1; return rep;
+        });
+        lastEl = node.parentElement;
+        break;
+      }
+    }
+
+    if (!count) return say('Koi match nahi mila.');
+    say(all ? `${count} jagah replace hua ✓` : '1 replace hua ✓');
+    lastEl?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    if (all) fixTables();   // table text replace hua ho to table bhi theek kar do
+  }
+
+  function fixTables() {
+    let made = 0;
+    [...editor.querySelectorAll('p, div')].forEach(el => {
+      if (el.querySelector('p, div, table')) return;
+      const txt = el.textContent;
+      if (!/\|\s*:?-{3,}/.test(txt)) return;
+
+      const cells = txt.split('|').map(s => s.trim()).filter(Boolean);
+      const isSep = c => /^:?-{3,}:?$/.test(c);
+      const n = cells.findIndex(isSep);           // columns ki ginti
+      if (n < 1) return;
+      let k = n;
+      while (k < cells.length && isSep(cells[k])) k++;
+      const head = cells.slice(0, n);
+      const body = cells.slice(k);
+
+      const e = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      let html = '<table><thead><tr>' + head.map(c => `<th>${e(c)}</th>`).join('') + '</tr></thead><tbody>';
+      for (let i = 0; i < body.length; i += n) {
+        const row = body.slice(i, i + n);
+        while (row.length < n) row.push('');
+        html += '<tr>' + row.map(c => `<td>${e(c)}</td>`).join('') + '</tr>';
+      }
+      html += '</tbody></table>';
+      el.outerHTML = html;
+      made++;
+    });
+    return made;
+  }
+
+  $id('replaceOne')?.addEventListener('click', () => replaceText(false));
+  $id('replaceAll')?.addEventListener('click', () => replaceText(true));
+  $id('fixTables')?.addEventListener('click', () => {
+    const n = fixTables();
+    say(n ? `${n} table fix ho gayi ✓` : 'Koi pipe-table nahi mili.');
+    if (n) editor.querySelector('table')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  });
+  editor.addEventListener('paste', () => setTimeout(fixTables, 60));
+  [$id('findText'), $id('replaceText')].forEach(i =>
+    i?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); replaceText(false); } }));
+})();
+
+  
 </script>
 </body></html>
