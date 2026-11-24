@@ -23,6 +23,22 @@ label{font-size:11px;margin:16px 0 6px}
 input,textarea,select{padding:11px 12px;font-size:16px}
 form button,.btn{padding:11px 16px;font-size:13px}
 }
+.fr-panel{padding:18px;margin-top:16px;background:#faf8f4;border:1px solid #e7e2da}
+.fr-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.fr-head h3{margin:0;font-family:Georgia,serif;font-weight:500}
+.fr-msg{font-size:12px;color:#9b6027;font-weight:600}
+.fr-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fr-check{display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13px;margin:12px 0 0}
+.fr-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.fr-actions button{margin:0;flex:1 1 140px}
+.btn-gold{background:#b78b4b!important;color:#fff}
+.fr-tip{margin:12px 0 0;line-height:1.5}
+.fr-tip code{background:#eee;padding:1px 5px;border-radius:4px}
+@media(max-width:640px){.fr-grid{grid-template-columns:1fr}}
+
+#articleContent table{border-collapse:collapse;width:100%;margin:12px 0;display:block;overflow-x:auto}
+#articleContent th,#articleContent td{border:1px solid #ccc;padding:6px 8px;min-width:90px}
+#articleContent th{background:#eee}
 </style></head><body><header class="top"><div class="brand">ZENZY COLLECTION <small> / ADMIN</small></div><button id="logout" class="hidden">LOG OUT</button></header><main class="wrap"><section id="login" class="panel" style="max-width:430px;margin:70px auto"><h1>Welcome back.</h1><p class="muted">Sign in to manage stories, images and customer bookings.</p><form id="loginForm"><label>Email</label><input name="email" type="email" required><label>Password</label><input name="password" type="password" required><button type="submit">SIGN IN</button></form><div id="loginMsg" class="msg"></div></section>
 <section id="dashboard" class="hidden"><div class="panel"><h1>Store management</h1><p class="muted">Manage editorial content and customer requests from one place.</p><div class="tabs"><button class="active" data-tab="articles">BLOG ARTICLES</button><button data-tab="bookings" data-admin-only>CUSTOMER BOOKINGS</button><button data-tab="overview">OVERVIEW</button><button data-tab="subscribers" data-admin-only>NEWSLETTER</button><button data-tab="categories">CATEGORIES</button><button data-tab="tags">TAGS</button><button data-tab="authors">AUTHORS</button><button data-tab="seo">SEO MANAGER</button><button data-tab="media">MEDIA LIBRARY</button><button data-tab="analytics">ANALYTICS</button><button data-tab="settings" data-admin-only>SETTINGS</button></div></div>
 <div id="articlesTab" class="grid2"><section class="panel"><h2 id="editorTitle">Create a story</h2><form id="articleForm"><input type="hidden" name="id"><label>Cover image</label><input type="file" id="coverFile" accept="image/jpeg,image/png,image/webp"><input name="coverImage" placeholder="Image URL (or upload above)"><input name="coverImageAlt" placeholder="Image alt text"><div class="row"><div><label>SEO title (max 70)</label><input name="seoTitle" maxlength="70"></div><div><label>Focus keyword</label><input name="focusKeyword" maxlength="100"></div></div><label>Meta description (max 180)</label><textarea name="metaDescription" style="min-height:70px" maxlength="180"></textarea><label>Article title</label><input name="title" required maxlength="180" placeholder="e.g. How to build a timeless wardrobe"><label>URL Slug</label>
@@ -77,8 +93,6 @@ form button,.btn{padding:11px 16px;font-size:13px}
 <label>FAQs (optional)</label>
 <textarea name="faqText" style="min-height:170px" placeholder="Q: Your question?&#10;A: Your answer.&#10;&#10;Q: Next question?&#10;A: Next answer."></textarea>
 <p class="muted">Har FAQ mein Q: aur A: line likho. Do FAQ ke beech mein ek blank line chhodo. Ek answer ke andar blank line mat do. Max 20.</p>
-<div class="panel" style="padding:14px;margin-top:14px">
-  <h3>Find and Replace</h3>
 <div class="panel fr-panel">
   <div class="fr-head">
     <h3>Find &amp; Replace</h3>
@@ -110,21 +124,6 @@ form button,.btn{padding:11px 16px;font-size:13px}
   <p class="muted fr-tip">
     Table pipe text (<code>| a | b |</code>) ban gayi ho to FIX TABLE dabao, wo asli table ban jayegi.
   </p>
-</div>
-  <div class="row">
-    <input id="findText" placeholder="Find text">
-    <input id="replaceText" placeholder="Replace with">
-  </div>
-
-  <button type="button" class="btn-light" id="replaceOne">
-    REPLACE NEXT
-  </button>
-
-  <button type="button" class="btn-light" id="replaceAll">
-    REPLACE ALL
-  </button>
-
-  <span id="replaceMsg" class="muted"></span>
 </div>
 <details style="margin:18px 0;border:1px solid #e7e2da;border-radius:10px;padding:0 14px;background:#faf8f4"><summary style="cursor:pointer;padding:14px 0;font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase">Related articles (optional)</summary><label>Related articles (hold Ctrl/Cmd to pick several)</label><select name="related" id="relatedSelect" multiple style="min-height:120px"></select></details><select name="related" id="relatedSelect" multiple style="min-height:120px"></select><label>Tags (comma separated)</label><input name="tags" placeholder="fashion, styling, wardrobe"><label><input type="checkbox" name="featured" style="width:auto"> Feature this article</label><label>Status</label><select name="status"><option value="draft">Save as draft</option><option value="published">Publish (now or on the date below)</option></select><label>Publish date &amp; time (optional, pick a future date to schedule)</label><div class="row"><input type="datetime-local" name="publishedAt"><button type="button" class="btn-light" id="publishNow">NOW</button></div><button type="submit">SAVE ARTICLE</button><button type="button" class="btn-light" id="previewArticle">PREVIEW</button><button type="button" class="btn-light" id="resetArticle">CLEAR FORM</button><div id="articleMsg" class="msg"></div></form></section><section class="panel"><h2>Articles</h2><div class="row"><select id="articleFilter"><option value="">All articles</option><option value="draft">Drafts</option><option value="published">Published</option></select><button id="refreshArticles">REFRESH</button></div><div id="articleList" class="muted">Loading...</div></section></div>
 <div id="overviewTab" class="panel hidden"><h2>Overview</h2><div id="statCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:16px 0"></div><h3>Top stories</h3><div id="topStories" class="muted">Loading...</div><h3>Views by category</h3><div id="catViews" class="muted"></div><button id="refreshOverview">REFRESH</button></div>
@@ -268,59 +267,6 @@ if(token)showDashboard();
 bindCount('ogTitle', 'ogTitleCount', 70);
 bindCount('ogDescription', 'ogDescCount', 200);
 
-function replaceArticleText(replaceAll) {
-  const editor = document.getElementById('articleContent');
-  const find = document.getElementById('findText').value;
-  const replacement = document.getElementById('replaceText').value;
-  const msg = document.getElementById('replaceMsg');
-
-  if (!find) {
-    msg.textContent = 'Enter text to find.';
-    return;
-  }
-
-  const walker = document.createTreeWalker(
-    editor,
-    NodeFilter.SHOW_TEXT
-  );
-
-  const nodes = [];
-
-  while (walker.nextNode()) {
-    nodes.push(walker.currentNode);
-  }
-
-  let count = 0;
-
-  for (const node of nodes) {
-    if (!node.nodeValue.includes(find)) continue;
-
-    if (replaceAll) {
-      const hits = node.nodeValue.split(find).length - 1;
-
-      node.nodeValue = node.nodeValue
-        .split(find)
-        .join(replacement);
-
-      count += hits;
-    } else {
-      node.nodeValue = node.nodeValue.replace(find, replacement);
-      count = 1;
-      break;
-    }
-  }
-
-  msg.textContent = count
-    ? `${count} replacement(s) made.`
-    : 'No matching text found.';
-}
-
-document.getElementById('replaceOne')
-  ?.addEventListener('click', () => replaceArticleText(false));
-
-document.getElementById('replaceAll')
-  ?.addEventListener('click', () => replaceArticleText(true));
-
 /* ===== Markdown paste -> formatted HTML ===== */
 (function () {
   const editor = document.getElementById('articleContent');
@@ -387,65 +333,6 @@ document.getElementById('replaceAll')
     document.execCommand('insertHTML', false, mdToHtml(text));
   });
 })();
-  /* ===== Pipe text -> real HTML table ===== */
-function fixTables() {
-  const box = document.getElementById('articleContent');
-  let made = 0;
-  [...box.querySelectorAll('p, div')].forEach(el => {
-    if (el.querySelector('p, div, table')) return;      // sirf innermost block
-    const txt = el.textContent;
-    if (!/\|\s*:?-{3,}/.test(txt)) return;               // |---| wali line chahiye
-
-    // saare cells nikalo (empty hata do)
-    const cells = txt.split('|').map(s => s.trim()).filter(Boolean);
-    const sepAt = cells.findIndex(c => /^:?-{3,}:?$/.test(c));
-    if (sepAt < 1) return;
-    const n = sepAt;                                      // columns ki ginti
-    let k = sepAt;
-    while (k < cells.length && /^:?-{3,}:?$/.test(cells[k])) k++;
-    const head = cells.slice(0, n);
-    const body = cells.slice(k);
-
-    const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    let html = '<table><thead><tr>' + head.map(c => `<th>${esc(c)}</th>`).join('') + '</tr></thead><tbody>';
-    for (let i = 0; i < body.length; i += n) {
-      const row = body.slice(i, i + n);
-      while (row.length < n) row.push('');
-      html += '<tr>' + row.map(c => `<td>${esc(c)}</td>`).join('') + '</tr>';
-    }
-    html += '</tbody></table>';
-    el.outerHTML = html;
-    made++;
-  });
-  return made;
-}
-
-document.getElementById('fixTables')?.addEventListener('click', () => {
-  const n = fixTables();
-  const msg = document.getElementById('replaceMsg');
-  if (msg) msg.textContent = n ? `${n} table fix ho gayi ✓` : 'Koi pipe-table nahi mili.';
-});
-
-// Replace All ke baad aur paste ke baad auto-fix
-document.getElementById('replaceAll')?.addEventListener('click', () => setTimeout(fixTables, 0));
-document.getElementById('articleContent')?.addEventListener('paste', () => setTimeout(fixTables, 50));
-.fr-panel{padding:18px;margin-top:16px;background:#faf8f4;border:1px solid #e7e2da}
-.fr-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.fr-head h3{margin:0;font-family:Georgia,serif;font-weight:500}
-.fr-msg{font-size:12px;color:#9b6027;font-weight:600}
-.fr-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.fr-check{display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13px;margin:12px 0 0}
-.fr-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.fr-actions button{margin:0;flex:1 1 140px}
-.btn-gold{background:#b78b4b!important;color:#fff}
-.fr-tip{margin:12px 0 0;line-height:1.5}
-.fr-tip code{background:#eee;padding:1px 5px;border-radius:4px}
-@media(max-width:640px){.fr-grid{grid-template-columns:1fr}}
-
-#articleContent table{border-collapse:collapse;width:100%;margin:12px 0;display:block;overflow-x:auto}
-#articleContent th,#articleContent td{border:1px solid #ccc;padding:6px 8px;min-width:90px}
-#articleContent th{background:#eee}
-
   /* ===== Find & Replace + Fix Table ===== */
 (function () {
   const $id = id => document.getElementById(id);
