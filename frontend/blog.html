@@ -135,7 +135,12 @@ footer{background:#111;color:white;padding:65px 8% 25px}
 .article-body figure.gallery img{height:100%;aspect-ratio:4/5;object-fit:cover}
 .article-body figure.gallery figcaption{grid-column:1/-1;margin-top:0}
 .article-body blockquote{border-left:3px solid var(--gold);margin:35px 0;padding:15px 25px;font:italic 25px var(--serif)}
-.faq{margin:50px 0 0}.faq h2{font-family:var(--serif);font-weight:500;margin:0 0 18px}
+.article-body{overflow-wrap:anywhere}
+.article-body table{width:100%;border-collapse:collapse;margin:30px 0;font-size:14px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.article-body th,.article-body td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top;min-width:110px}
+.article-body th{background:#171717;color:#fff;font-weight:500;letter-spacing:.5px;font-size:12px}
+.article-body tbody tr:nth-child(even){background:#faf8f4}
+  .faq{margin:50px 0 0}.faq h2{font-family:var(--serif);font-weight:500;margin:0 0 18px}
 .faq details{border-top:1px solid var(--line);padding:16px 0}.faq details:last-child{border-bottom:1px solid var(--line)}
 .faq summary{cursor:pointer;font-weight:600;font-size:16px;line-height:1.5}
 .faq p{margin:12px 0 0;line-height:1.9;color:#333}
