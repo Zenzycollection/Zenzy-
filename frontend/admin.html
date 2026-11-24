@@ -79,7 +79,38 @@ form button,.btn{padding:11px 16px;font-size:13px}
 <p class="muted">Har FAQ mein Q: aur A: line likho. Do FAQ ke beech mein ek blank line chhodo. Ek answer ke andar blank line mat do. Max 20.</p>
 <div class="panel" style="padding:14px;margin-top:14px">
   <h3>Find and Replace</h3>
+<div class="panel fr-panel">
+  <div class="fr-head">
+    <h3>Find &amp; Replace</h3>
+    <span id="replaceMsg" class="fr-msg"></span>
+  </div>
 
+  <div class="fr-grid">
+    <div>
+      <label for="findText">Find</label>
+      <input id="findText" placeholder="Jo text dhoondhna hai" autocomplete="off">
+    </div>
+    <div>
+      <label for="replaceText">Replace with</label>
+      <input id="replaceText" placeholder="Naya text" autocomplete="off">
+    </div>
+  </div>
+
+  <label class="fr-check">
+    <input type="checkbox" id="frCase" style="width:auto">
+    Match case (capital/small same ho)
+  </label>
+
+  <div class="fr-actions">
+    <button type="button" class="btn-light" id="replaceOne">REPLACE NEXT</button>
+    <button type="button" id="replaceAll">REPLACE ALL</button>
+    <button type="button" class="btn-gold" id="fixTables">⊞ FIX TABLE</button>
+  </div>
+
+  <p class="muted fr-tip">
+    Table pipe text (<code>| a | b |</code>) ban gayi ho to FIX TABLE dabao, wo asli table ban jayegi.
+  </p>
+</div>
   <div class="row">
     <input id="findText" placeholder="Find text">
     <input id="replaceText" placeholder="Replace with">
