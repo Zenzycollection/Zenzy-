@@ -776,4 +776,154 @@ bindCount('ogDescription', 'ogDescCount', 200);
   sync();
 })();
   </script>
+  <script>
+/* ===== SEO & H1 CHECK (live) — merged final ===== */
+(function () {
+  const form = document.getElementById('articleForm'), editor = document.getElementById('articleContent');
+  if (!form || !editor) return;
+  const F = n => (form.elements[n] ? form.elements[n].value : '').trim();
+  const norm = s => (s || '').toLowerCase().normalize('NFC').trim();
+  const toks = s => norm(s).split(/[\s,.:;!?\-–—|/()"'“”‘’।]+/).filter(w => w.length > 1);
+  const hasKw = (kw, text) => { const t = norm(text), k = norm(kw); return !!k && (t.includes(k) || toks(k).every(w => t.includes(w))); };
+  const count = (text, kw) => { const k = norm(kw); if (!k) return 0; let c = 0, i = 0, t = norm(text); while ((i = t.indexOf(k, i)) >= 0) { c++; i += k.length; } return c; };
+  const jac = (a, b) => { const A = new Set(toks(a)), B = new Set(toks(b)); if (!A.size || !B.size) return 0; let x = 0; A.forEach(w => B.has(w) && x++); return x / (A.size + B.size - x); };
+  const esc2 = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  /* ---- UI ---- */
+  const box = document.createElement('details');
+  box.open = true;
+  box.style.cssText = 'margin:18px 0;border:1px solid #e7e2da;border-radius:10px;padding:0 14px 12px;background:#fff';
+  box.innerHTML = '<summary style="cursor:pointer;padding:14px 0;font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase"><span id="seoSum">SEO &amp; H1 check</span></summary><div id="seoBody"></div>';
+  const adv = [...document.querySelectorAll('#articleForm details')].find(d => /Advanced SEO/i.test(d.textContent));
+  adv ? adv.before(box) : editor.after(box);
+  const body = box.querySelector('#seoBody'), sum = box.querySelector('#seoSum');
+
+  /* ---- other article titles (duplicate check) ---- */
+  let others = null;
+  async function loadOthers() {
+    if (others || typeof auth !== 'function' || !window.token && typeof token === 'undefined') return;
+    try {
+      const r = await fetch('/api/articles/admin/all', { headers: auth() });
+      const d = await r.json(); if (r.ok) others = d.items || [];
+    } catch (_) {}
+  }
+
+  function run() {
+    const title = F('title'), seoT = F('seoTitle'), kw = F('focusKeyword'), meta = F('metaDescription'),
+          slug = F('slug'), excerpt = F('excerpt'), alt = F('coverImageAlt');
+    const text = editor.textContent || '', words = text.trim().split(/\s+/).filter(Boolean);
+    const first100 = words.slice(0, 100).join(' ');
+    const h1s = editor.querySelectorAll('h1').length, h2s = editor.querySelectorAll('h2').length;
+    const imgs = [...editor.querySelectorAll('img')], links = editor.querySelectorAll('a[href]').length;
+    const H = [], S = [];
+    const add = (arr, lvl, t, tip) => arr.push({ lvl, t, tip });
+
+    /* ---------- H1 (blog par article title hi H1 hai) ---------- */
+    if (!title) add(H, 'bad', 'H1 (title) khali hai', 'Visible main heading zaroori hai.');
+    else add(H, 'ok', 'H1 maujood hai', title.length + ' characters');
+
+    if (title) {
+      if (!kw) add(H, 'warn', 'Focus keyword set nahi hai', 'Advanced SEO mein focus keyword daalo.');
+      else if (hasKw(kw, title)) add(H, 'ok', 'Focus keyword H1 mein hai');
+      else add(H, 'bad', 'Focus keyword H1 mein nahi hai', 'H1 (title) mein "' + kw + '" natural wording mein daalo.');
+
+      const t = toks(title), freq = {}; t.forEach(w => freq[w] = (freq[w] || 0) + 1);
+      const stuffed = (title.match(/[,،]/g) || []).length >= 2 || Object.keys(freq).some(w => w.length > 2 && freq[w] >= 3) || (kw && count(title, kw) >= 2);
+      add(H, stuffed ? 'bad' : 'ok', stuffed ? 'Keyword stuffing lag rahi hai' : 'Keyword stuffing nahi hai',
+          stuffed ? 'Comma list ya baar-baar same word hatao, ek natural line likho.' : '');
+
+      add(H, t.length < 3 ? 'warn' : 'ok', t.length < 3 ? 'H1 bahut generic / chhota hai' : 'H1 descriptive hai',
+          t.length < 3 ? 'Topic saaf batao, jaise "How to Style an Oversized Blazer".' : '');
+
+      const bait = /\b(only|must|everyone|shocking|secret|never|always|best ever|won'?t believe|100%)\b/i.test(title) || /शॉकिंग/.test(title);
+      add(H, bait ? 'warn' : 'ok', bait ? 'Misleading / clickbait wording ho sakti hai' : 'Wording misleading nahi hai',
+          bait ? '"only", "must", "everyone" jaise bade daave hatao.' : '');
+
+      if (title.length > 110) add(H, 'warn', 'H1 bahut lamba hai', 'Google ka char limit nahi, par padhne mein chhota behtar hai.');
+      else add(H, 'ok', 'H1 ki length readable hai', 'Google ka koi exact character limit nahi.');
+
+      if (words.length > 30) {
+        const sig = t.filter(w => w.length > 2), tx = norm(text), m = sig.filter(w => tx.includes(w)).length;
+        const r = sig.length ? m / sig.length : 1;
+        add(H, r >= .5 ? 'ok' : 'warn', r >= .5 ? 'H1 content se match karta hai' : 'H1 ke words content mein kam hain', r >= .5 ? '' : 'H1 aur article ka topic same hona chahiye.');
+      }
+
+      if (seoT) {
+        const j = jac(title, seoT);
+        add(H, j >= .4 ? 'ok' : 'warn', j >= .4 ? 'SEO title aur H1 consistent hain' : 'SEO title aur H1 alag topic jaise lag rahe hain', j >= .4 ? '' : 'Dono alag ho sakte hain, par ek hi article batayein.');
+        if (kw) add(H, hasKw(kw, seoT) ? 'ok' : 'bad',
+          hasKw(kw, seoT) ? 'Focus keyword SEO title mein hai' : 'Focus keyword SEO title mein nahi hai',
+          hasKw(kw, seoT) ? '' : 'SEO title mein "' + kw + '" daalo.');
+      } else add(H, 'ok', 'SEO title khali: blog title hi use hoga', 'Focus keyword title mein hai to chalega.');
+
+      if (others) {
+        const me = (form.elements.id || {}).value;
+        const o = others.filter(x => String(x._id || x.id) !== String(me));
+        const dup = o.find(x => norm(x.title) === norm(title)), sim = o.find(x => jac(x.title, title) >= .8);
+        if (dup) add(H, 'bad', 'Yahi H1 kisi aur article ka bhi hai', '"' + dup.title + '"');
+        else if (sim) add(H, 'warn', 'H1 ek aur article se bahut milta hai', '"' + sim.title + '"');
+        else add(H, 'ok', 'H1 website par unique hai');
+      }
+    }
+    add(H, h1s ? 'warn' : 'ok', h1s ? `Content mein ${h1s} extra H1 hai` : 'Content mein extra H1 nahi hai',
+        h1s ? 'Blog page title ko pehle se H1 banata hai. Content mein H2 use karo.' : '');
+
+    /* ---------- SEO ---------- */
+    const wc = words.length;
+    add(S, wc >= 300 ? 'ok' : wc >= 150 ? 'warn' : 'bad', `Content: ${wc} words`, wc >= 300 ? '' : 'Helpful, poori jaankari wala content likho (300+ words achha).');
+    if (!meta) add(S, 'bad', 'Meta description khali hai', '70 se 160 characters ki summary likho.');
+    else add(S, meta.length >= 70 && meta.length <= 160 ? 'ok' : 'warn', `Meta description: ${meta.length} chars`, meta.length >= 70 && meta.length <= 160 ? '' : 'Search result mein kat sakti hai ya adhoori lagegi (70-160 theek).');
+    add(S, excerpt ? 'ok' : 'warn', excerpt ? 'Excerpt hai' : 'Short excerpt khali hai');
+
+    if (kw) {
+      add(S, hasKw(kw, meta) ? 'ok' : 'bad',
+        hasKw(kw, meta) ? 'Focus keyword meta description mein hai' : 'Focus keyword meta description mein nahi hai',
+        hasKw(kw, meta) ? '' : 'Meta description mein "' + kw + '" daalo.');
+      add(S, hasKw(kw, first100) ? 'ok' : 'warn', hasKw(kw, first100) ? 'Keyword shuru ke 100 words mein hai' : 'Keyword shuru ke 100 words mein nahi hai');
+
+      const kc = count(text, kw), kn = toks(kw).length || 1;
+      const dens = wc ? kc * kn / wc * 100 : 0;
+      const goal = Math.max(1, Math.round(wc * 0.01 / kn));          // 1% ke liye kitni baar chahiye
+      const dOk = dens >= 0.7 && dens <= 1.3;
+      add(S, dOk ? 'ok' : (dens < 0.3 || dens > 2) ? 'bad' : 'warn',
+        `Focus keyword density ${dens.toFixed(2)}% (target ~1%)`,
+        dOk ? kc + ' baar use hua' : `Abhi ${kc} baar hai. ${wc} words par ~${goal} baar rakho${dens > 1.3 ? ' (kam karo)' : ' (thoda badhao)'}.`);
+
+      if (slug && /^[\x00-\x7F]*$/.test(kw)) {
+        const ok = toks(kw).some(w => slug.includes(w));
+        add(S, ok ? 'ok' : 'warn', ok ? 'Slug mein keyword hai' : 'Slug mein keyword nahi hai');
+      }
+    }
+    if (slug) add(S, /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) ? 'ok' : 'warn', /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) ? 'Slug saaf hai' : 'Slug mein sirf lowercase, number aur hyphen rakho');
+    else add(S, 'warn', 'Slug khali hai');
+    add(S, h2s >= 1 ? 'ok' : 'warn', h2s >= 1 ? `${h2s} heading (H2) hai` : 'H2 headings nahi hain', h2s >= 1 ? '' : 'Article ko headings se baanto.');
+    const noAlt = imgs.filter(i => !(i.getAttribute('alt') || '').trim()).length;
+    add(S, noAlt ? 'warn' : 'ok', noAlt ? `${noAlt} image ka alt text nahi hai` : (imgs.length ? 'Sab images mein alt text hai' : 'Content mein image nahi hai'), noAlt ? 'Media library mein alt text add karo.' : '');
+    if (F('coverImage')) add(S, alt ? 'ok' : 'warn', alt ? 'Cover image alt hai' : 'Cover image ka alt text nahi hai');
+    add(S, links ? 'ok' : 'warn', links ? `${links} link hai` : 'Content mein koi link nahi hai', links ? '' : 'Related article ya useful link daalo.');
+    if (form.elements.noIndex && form.elements.noIndex.checked) add(S, 'bad', 'noIndex ON hai: Google is page ko index nahi karega');
+
+    /* ---------- render ---------- */
+    const pts = { ok: 1, warn: .5, bad: 0 }, ic = { ok: '✅', warn: '⚠️', bad: '❌' };
+    const sc = a => a.length ? Math.round(a.reduce((s, x) => s + pts[x.lvl], 0) / a.length * 100) : 0;
+    const hs = sc(H), ss = sc(S);
+    sum.textContent = `SEO & H1 check · H1 ${hs}% · SEO ${ss}%`;
+    const sect = (name, arr, score) => `<div style="font-size:11px;letter-spacing:1.5px;margin:14px 0 6px;font-weight:600">${name} · ${score}%</div>` +
+      arr.map(x => `<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f0ece4;font-size:13px"><span>${ic[x.lvl]}</span><div>${esc2(x.t)}${x.tip ? `<div style="font-size:12px;color:#777">${esc2(x.tip)}</div>` : ''}</div></div>`).join('');
+    body.innerHTML = sect('H1 CHECK', H, hs) +
+      (h1s ? '<button type="button" id="seoFixH1" class="btn-light" style="margin:10px 0 0;padding:8px 14px;font-size:11px">CONTENT KE H1 → H2 KARO</button>' : '') +
+      sect('SEO CHECK', S, ss);
+    const fx = body.querySelector('#seoFixH1');
+    if (fx) fx.onclick = () => {
+      editor.querySelectorAll('h1').forEach(h => { const n = document.createElement('h2'); n.innerHTML = h.innerHTML; h.replaceWith(n); });
+      editor.dispatchEvent(new Event('input', { bubbles: true })); run();
+    };
+  }
+
+  let t; const later = () => { clearTimeout(t); t = setTimeout(run, 500); };
+  form.addEventListener('input', later); form.addEventListener('change', later);
+  setInterval(() => { loadOthers(); run(); }, 4000);   // image insert, find/replace, article load sab cover
+  loadOthers().then(run); run();
+})();
+</script>
 </body></html>
