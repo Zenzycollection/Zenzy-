@@ -248,6 +248,37 @@ body.leaving{opacity:0;transition:opacity .22s ease}
 .story-card{position:relative;cursor:pointer}
 .story-card .read-link::after{content:"";position:absolute;inset:0;z-index:1}
 .story-card:hover .story-image img{transform:scale(1.05)}
+/* ===== Magazine image layouts ===== */
+.article-body{display:flow-root}
+.article-body h2,.article-body h3{clear:both}
+.article-body figure img{display:block;width:100%;margin:0}
+.article-body figcaption{font-style:italic;font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+
+/* text ke saath: left / right */
+.article-body figure.img-left,.article-body figure.img-right{width:46%;margin-top:6px;margin-bottom:18px}
+.article-body figure.img-left{float:left;margin-right:28px}
+.article-body figure.img-right{float:right;margin-left:28px}
+/* beech mein chhoti image */
+.article-body figure.img-center{width:68%;margin-left:auto;margin-right:auto}
+
+/* grids */
+.article-body figure.gallery-2,.article-body figure.gallery-3,.article-body figure.mosaic{display:grid;gap:10px}
+.article-body figure.gallery-2{grid-template-columns:repeat(2,1fr)}
+.article-body figure.gallery-3{grid-template-columns:repeat(3,1fr)}
+.article-body figure.gallery-2 img,.article-body figure.gallery-3 img{aspect-ratio:4/5;height:100%;object-fit:cover}
+/* mosaic: ek badi image + baaki chhoti */
+.article-body figure.mosaic{grid-template-columns:1.5fr 1fr}
+.article-body figure.mosaic img{aspect-ratio:1/1;height:100%;object-fit:cover}
+.article-body figure.mosaic img:first-child{grid-row:span 2;aspect-ratio:auto}
+.article-body figure.gallery-2 figcaption,.article-body figure.gallery-3 figcaption,.article-body figure.mosaic figcaption{grid-column:1/-1;margin-top:0}
+
+@media(max-width:600px){
+  .article-body figure.img-left,.article-body figure.img-right{width:50%;margin-bottom:12px}
+  .article-body figure.img-left{margin-right:16px}
+  .article-body figure.img-right{margin-left:16px}
+  .article-body figure.img-center{width:85%}
+  .article-body figure.gallery-3{grid-template-columns:repeat(2,1fr)}
+  }
 </style>
 </head>
 
