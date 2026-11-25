@@ -474,6 +474,7 @@ body.leaving{opacity:0;transition:opacity .22s ease}
 
 <script>
 const API='/api';
+function capFirst(p){const w=document.createTreeWalker(p,NodeFilter.SHOW_TEXT);let t;while(t=w.nextNode()){if(t.nodeValue.trim())break}if(!t)return;const s=t.nodeValue,off=s.length-s.trimStart().length,rest=s.slice(off);let g;try{g=[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(rest)][0].segment}catch(e){const m=rest.match(/^(?:[\u0915-\u0939\u0958-\u095F]\u093C?\u094D)*[\u0900-\u097F][\u093C\u0900-\u0903\u093A-\u094C\u094E\u094F\u0951-\u0957\u0962\u0963]*/u);g=m?m[0]:rest[0]}const mid=off?t.splitText(off):t;mid.splitText(g.length);const sp=document.createElement('span');sp.className='cap';sp.textContent=g;mid.replaceWith(sp)}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const date=s=>s?new Date(s).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';
