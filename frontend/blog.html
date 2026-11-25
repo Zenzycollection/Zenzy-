@@ -294,6 +294,10 @@ body.leaving{opacity:0;transition:opacity .22s ease}
 }
 .article-body p.h2cap::first-letter{font-family:var(--serif);font-size:1.9em;font-weight:500;line-height:.95;float:left;margin:3px 7px 0 0;color:var(--gold)}
 @media(max-width:600px){.article-body p.h2cap::first-letter{font-size:1.7em;margin-right:6px}}
+.article-body p.h2cap::first-letter{font-family:var(--serif);font-weight:500;color:var(--gold);float:left;font-size:2.6em;line-height:.75;margin:6px 6px 0 0;padding:0}
+@supports (initial-letter:2){
+  .article-body p.h2cap::first-letter{initial-letter:2;float:none;font-size:inherit;line-height:inherit;margin:0 .28em 0 0}
+}
 </style>
 </head>
 
