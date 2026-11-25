@@ -590,31 +590,73 @@ bindCount('ogDescription', 'ogDescCount', 200);
   }
 })();
   </script>
-  <script>
-/* ===== FIX: image insert in article content ===== */
+<script>
+/* ===== Image insert + MAGAZINE LAYOUTS (replaces old image-fix script) ===== */
 (function () {
   const $id = id => document.getElementById(id);
-  const editor = $id('articleContent'), btn = $id('pickInsert');
-  if (!editor || !btn) return;
+  const editor = $id('articleContent'), btn = $id('pickInsert'), dlg = $id('mediaDlg');
+  const tb = $id('insertImage')?.parentElement;
+  if (!editor || !btn || !dlg || !tb) return;
 
-  /* editor ke andar images/figure ki styling */
+  const LAY = [['', 'FULL'], ['img-left', 'LEFT'], ['img-right', 'RIGHT'], ['img-center', 'CENTER'],
+               ['gallery-2', 'GRID 2'], ['gallery-3', 'GRID 3'], ['mosaic', 'MOSAIC']];
+  const GRIDS = ['gallery-2', 'gallery-3', 'mosaic'];
+
+  /* editor ke andar wahi look (preview) */
+  const S = '#articleContent';
   const st = document.createElement('style');
   st.textContent = `
-    #articleContent img{max-width:100%;height:auto;display:block;margin:12px auto;border-radius:6px}
-    #articleContent figure{margin:16px 0;text-align:center}
-    #articleContent figure.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
-    #articleContent figure.gallery img{margin:0;width:100%;object-fit:cover}
-    #articleContent figcaption{font-size:13px;color:#777;margin-top:6px;grid-column:1/-1}`;
+  ${S}{display:flow-root}
+  ${S} h1,${S} h2,${S} h3{clear:both}
+  ${S} figure{margin:16px 0}
+  ${S} figure img{display:block;width:100%;height:auto;margin:0}
+  ${S} figcaption{font-style:italic;font-size:12px;color:#777;margin-top:6px}
+  ${S} figure.img-left,${S} figure.img-right{width:46%;margin-top:6px}
+  ${S} figure.img-left{float:left;margin-right:20px}
+  ${S} figure.img-right{float:right;margin-left:20px}
+  ${S} figure.img-center{width:68%;margin-left:auto;margin-right:auto}
+  ${S} figure.gallery,${S} figure.gallery-2,${S} figure.gallery-3,${S} figure.mosaic{display:grid;gap:8px}
+  ${S} figure.gallery{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+  ${S} figure.gallery-2{grid-template-columns:repeat(2,1fr)}
+  ${S} figure.gallery-3{grid-template-columns:repeat(3,1fr)}
+  ${S} figure.gallery img,${S} figure.gallery-2 img,${S} figure.gallery-3 img{aspect-ratio:4/5;height:100%;object-fit:cover}
+  ${S} figure.mosaic{grid-template-columns:1.5fr 1fr}
+  ${S} figure.mosaic img{aspect-ratio:1/1;height:100%;object-fit:cover}
+  ${S} figure.mosaic img:first-child{grid-row:span 2;aspect-ratio:auto}
+  ${S} figure.gallery figcaption,${S} figure.gallery-2 figcaption,${S} figure.gallery-3 figcaption,${S} figure.mosaic figcaption{grid-column:1/-1}`;
   document.head.appendChild(st);
 
-  /* cursor ki jagah yaad rakho (dialog khulne par selection chali jati hai) */
+  /* layout chips helper */
+  function chips(host, active, onPick) {
+    host.innerHTML = '';
+    LAY.forEach(([c, l]) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'btn-light'; b.textContent = l;
+      b.style.cssText = 'padding:7px 12px;font-size:11px';
+      if (c === active) { b.style.background = '#171717'; b.style.color = '#fff'; }
+      b.onclick = () => { onPick(c); chips(host, c, onPick); };
+      host.appendChild(b);
+    });
+  }
+
+  /* ---- 1) Picker dialog mein layout chunao ---- */
+  let layout = '';
+  const row = document.createElement('div');
+  row.innerHTML = '<div style="font-size:11px;letter-spacing:1.5px;margin:6px 0">IMAGE LAYOUT</div>';
+  const host = document.createElement('div');
+  host.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px';
+  row.appendChild(host);
+  (dlg.querySelector('p.muted') || dlg.firstElementChild).after(row);
+  chips(host, layout, c => layout = c);
+
+  /* ---- insert ---- */
+  const escH = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   let rng = null;
   document.addEventListener('selectionchange', () => {
     const s = getSelection();
     if (s.rangeCount && editor.contains(s.anchorNode)) rng = s.getRangeAt(0).cloneRange();
   });
-
-  const escH = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fire = () => editor.dispatchEvent(new Event('input', { bubbles: true }));
 
   btn.addEventListener('click', e => {
     e.stopImmediatePropagation(); e.preventDefault();
@@ -623,39 +665,61 @@ bindCount('ogDescription', 'ogDescCount', 200);
     if (!imgs.length) { msg.textContent = 'Select at least one image.'; return; }
 
     const cap = $id('pickCaption').value.trim();
+    const cls = imgs.length > 1 ? (GRIDS.includes(layout) ? layout : 'gallery')
+                                : (GRIDS.includes(layout) ? '' : layout);
     const fig = document.createElement('figure');
-    if (imgs.length > 1) fig.className = 'gallery';
+    if (cls) fig.className = cls;
     fig.innerHTML = imgs.map(i => `<img src="${escH(i.url)}" alt="${escH(i.alt)}">`).join('') +
                     (cap ? `<figcaption>${escH(cap)}</figcaption>` : '');
-    const after = document.createElement('p');
-    after.innerHTML = '<br>';
 
-    /* kahan daalna hai: cursor wale top-level block ke baad, warna end mein */
     let ref = null;
     if (rng && editor.contains(rng.commonAncestorContainer)) {
       let n = rng.endContainer;
       while (n && n.parentNode !== editor) n = n.parentNode;
       ref = n && n !== editor ? n : null;
     }
-    if (ref) { ref.after(fig); fig.after(after); }
-    else { editor.append(fig, after); }
-
-    /* cursor nayi khali line mein */
-    try {
-      const r = document.createRange(); r.setStart(after, 0); r.collapse(true);
-      const s = getSelection(); s.removeAllRanges(); s.addRange(r); rng = r.cloneRange();
-    } catch (_) {}
-
-    editor.dispatchEvent(new Event('input', { bubbles: true }));   // autosave trigger
-    $id('mediaDlg').close();
+    /* left/right image text ke SAATH chahiye, isliye usi paragraph se pehle daalo */
+    if (cls === 'img-left' || cls === 'img-right') {
+      if (ref) ref.before(fig); else { editor.append(fig); const p = document.createElement('p'); p.innerHTML = '<br>'; editor.append(p); }
+    } else {
+      const after = document.createElement('p'); after.innerHTML = '<br>';
+      if (ref) { ref.after(fig); fig.after(after); } else editor.append(fig, after);
+    }
+    fire();
+    dlg.close();
     if (typeof pickSel !== 'undefined') pickSel.clear();
     fig.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    $id('articleMsg').textContent = imgs.some(i => !i.alt)
-      ? 'Image inserted. Kuch images ka alt text nahi hai, Media library mein add karo (SEO).'
-      : 'Image inserted.';
-  }, true);   // capture: purana execCommand wala handler ab nahi chalega
+    $id('articleMsg').textContent = 'Image inserted. Layout badalne ke liye image par tap karo.';
+  }, true);
+
+  /* ---- 2) Pehle se daali image par tap = layout badlo / hatao ---- */
+  const figBar = document.createElement('div');
+  figBar.style.cssText = 'display:none;margin:8px 0;padding:10px;border:1px solid #ddd;background:#fff;border-radius:8px';
+  tb.after(figBar);
+  const fhost = document.createElement('div');
+  fhost.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin-top:6px';
+  const del = document.createElement('button');
+  del.type = 'button'; del.className = 'btn-light'; del.textContent = '🗑 REMOVE';
+  del.style.cssText = 'padding:7px 12px;font-size:11px;color:#b00020';
+  figBar.innerHTML = '<div style="font-size:11px;letter-spacing:1.5px">SELECTED IMAGE · LAYOUT</div>';
+  figBar.append(fhost);
+  let cur = null;
+  const curLayout = f => (LAY.map(l => l[0]).find(c => c && f.classList.contains(c))) || '';
+  function render() {
+    chips(fhost, curLayout(cur), c => {
+      if (c) cur.className = c; else cur.removeAttribute('class');
+      fire();
+    });
+    fhost.append(del);
+  }
+  del.onclick = () => { if (cur) { cur.remove(); cur = null; figBar.style.display = 'none'; fire(); } };
+  editor.addEventListener('click', e => {
+    const f = e.target.closest && e.target.closest('figure');
+    if (f && editor.contains(f)) { cur = f; figBar.style.display = 'block'; render(); }
+    else { cur = null; figBar.style.display = 'none'; }
+  });
 })();
-  </script>
+</script>
   <script>
 /* ===== UNDO / REDO for article content ===== */
 (function () {
