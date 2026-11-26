@@ -19,3 +19,59 @@
 body{animation:pageIn .35s ease}
 body.leaving{opacity:0;transition:opacity .22s ease}
 @media(prefers-reduced-motion:reduce){body{animation:none}body.leaving{opacity:1;transition:none}}
+
+/* ZENZY COLLECTION GOOGLE MAPS */
+
+.store-location {
+  display: grid;
+  grid-template-columns: .8fr 1.2fr;
+  gap: 45px;
+  align-items: center;
+  padding: 90px 8%;
+  background: #eeece6;
+}
+
+.store-location-copy h2 {
+  font: 500 clamp(38px,5vw,62px)/1.1 var(--serif);
+  margin: 0 0 18px;
+  letter-spacing: -1px;
+}
+
+.store-location-copy h2 em {
+  font-weight: 500;
+}
+
+.store-location-copy > p:not(.eyebrow) {
+  max-width: 390px;
+  color: var(--muted);
+  line-height: 1.9;
+  font-size: 13px;
+}
+
+.store-location-copy .store-phone {
+  margin: 20px 0;
+}
+
+.store-map-wrap {
+  height: 390px;
+  overflow: hidden;
+  background: #ddd;
+}
+
+.store-map-wrap iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+@media(max-width:650px) {
+  .store-location {
+    grid-template-columns: 1fr;
+    gap: 25px;
+    padding: 65px 5%;
+  }
+
+  .store-map-wrap {
+    height: 300px;
+  }
+}
