@@ -1,0 +1,82 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Products | Zenzy Admin</title>
+<style>
+:root{font-family:Inter,Arial,sans-serif;color:#242424;background:#f5f3ef}*{box-sizing:border-box}body{margin:0}
+.top{background:#171717;color:#fff;padding:16px 5%;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.top a{color:#fff;text-decoration:none;font-size:12px;letter-spacing:1px;margin-right:14px}
+.brand{font-family:Georgia,serif;letter-spacing:2px;font-size:14px}
+.wrap{max-width:1100px;margin:24px auto;padding:0 16px}
+.panel{background:#fff;border:1px solid #e7e2da;border-radius:14px;padding:18px;margin-bottom:18px}
+h1,h2{font-family:Georgia,serif;font-weight:500;margin:0 0 12px}
+label{display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#666;margin:12px 0 5px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font:inherit;background:#fff}
+textarea{min-height:90px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{padding:11px 16px;border:0;background:#171717;color:#fff;border-radius:6px;font:600 12px Inter,Arial;letter-spacing:1px;cursor:pointer}
+button.ghost{background:#fff;color:#171717;border:1px solid #ccc}button.red{background:#a33}
+.hidden{display:none!important}
+.item{display:flex;gap:12px;padding:12px 0;border-top:1px solid #eee;align-items:flex-start}
+.item img{width:64px;height:80px;object-fit:cover;border-radius:6px;background:#eee;flex:none}
+.item .info{flex:1;min-width:0}.acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.acts button{padding:7px 10px;font-size:11px}
+.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;background:#eee;margin-left:6px}.tag.w{background:#fde8e8;color:#a33}
+.chips button{margin:4px 4px 0 0;padding:6px 10px;font-size:11px}
+.msg{font-size:13px;margin-top:10px;color:#a33}.msg.ok{color:#2a7a3b}
+.chk{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap}.chk label{display:flex;gap:8px;align-items:center;margin:0;text-transform:none;font-size:14px;color:#242424;letter-spacing:0}.chk input{width:auto}
+#pv{width:90px;height:112px;object-fit:cover;border-radius:6px;margin-top:8px;background:#eee}
+@media(max-width:700px){.row{grid-template-columns:1fr}}
+</style></head><body>
+<header class="top"><div class="brand">ZENZY / PRODUCTS</div><div><a href="/admin">ARTICLES ADMIN</a><button id="logout" class="hidden">LOG OUT</button></div></header>
+<main class="wrap">
+<section id="login" class="panel hidden" style="max-width:430px;margin:60px auto"><h1>Admin login</h1><form id="loginForm"><label>Email</label><input name="email" type="email" required><label>Password</label><input name="password" type="password" required><button style="margin-top:14px" type="submit">SIGN IN</button></form><div id="loginMsg" class="msg"></div></section>
+<div id="app" class="hidden">
+<section class="panel hidden" id="importBox"><h2>Import current products</h2><p>Website par abhi 8 default products dikh rahe hain. Inhe database me import karo, phir sab edit kar sakoge.</p><button id="importBtn">IMPORT PRODUCTS</button></section>
+<section class="panel"><h2 id="formTitle">Add product</h2>
+<form id="pForm"><input type="hidden" name="id">
+<label>Product name *</label><input name="name" required maxlength="120">
+<div class="row"><div><label>Category *</label><select name="category"><option>Women</option><option>Men</option><option>Essentials</option></select></div><div><label>Badge (optional)</label><input name="badge" maxlength="24" placeholder="NEW ARRIVAL"></div></div>
+<div class="row"><div><label>Selling price (₹) *</label><input name="price" type="number" min="1" required inputmode="numeric"></div><div><label>MRP / cut price (₹)</label><input name="mrp" type="number" min="0" inputmode="numeric" placeholder="Optional, discount dikhega"></div></div>
+<label>Image *</label><input name="image" placeholder="https://... image link"><div style="margin-top:8px"><input type="file" id="imgFile" accept="image/jpeg,image/png,image/webp"></div><img id="pv" class="hidden" alt=""><div id="upMsg" class="msg"></div>
+<label>Sizes (comma se alag)</label><input name="sizes" placeholder="S, M, L, XL">
+<div class="chips"><button type="button" class="ghost" data-sz="S,M,L,XL">S-XL</button><button type="button" class="ghost" data-sz="XS,S,M,L,XL,XXL">XS-XXL</button><button type="button" class="ghost" data-sz="28,30,32,34,36">28-36</button><button type="button" class="ghost" data-sz="Free Size">Free Size</button></div>
+<label>Description</label><textarea name="description" maxlength="1000"></textarea>
+<div class="row"><div><label>Fabric</label><input name="fabric" placeholder="100% Cotton"></div><div><label>Color</label><input name="color" placeholder="Maroon, White"></div></div>
+<div class="row"><div><label>Fit</label><input name="fit" placeholder="Regular / Oversized"></div><div><label>Care</label><input name="care" placeholder="Machine wash cold"></div></div>
+<label>Display order (chhota number pehle)</label><input name="sortOrder" type="number" value="0">
+<div class="chk"><label><input type="checkbox" name="active" checked> Website par dikhao</label><label><input type="checkbox" name="inStock" checked> In stock</label></div>
+<div style="margin-top:16px"><button type="submit" id="saveBtn">SAVE PRODUCT</button> <button type="button" class="ghost" id="resetBtn">NEW / CLEAR</button></div><div id="fMsg" class="msg"></div></form></section>
+<section class="panel"><h2>All products <small id="count" style="font-size:13px;color:#888"></small></h2><input id="q" placeholder="Search products..."><div id="list"></div></section>
+</div></main>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let token=localStorage.getItem('zenzy-admin-token')||'',items=[];
+const money=n=>'₹'+Number(n).toLocaleString('en-IN');
+function view(login){$('#login').classList.toggle('hidden',!login);$('#app').classList.toggle('hidden',login);$('#logout').classList.toggle('hidden',login)}
+async function api(url,opt={}){
+ const r=await fetch(url,{...opt,headers:{...(opt.headers||{}),Authorization:'Bearer '+token}});
+ const d=await r.json().catch(()=>({}));
+ if(r.status===401){localStorage.removeItem('zenzy-admin-token');token='';view(true);$('#loginMsg').textContent=d.error||'Please log in.';throw Error(d.error||'Login required')}
+ if(!r.ok)throw Error(d.error||'Something went wrong');return d}
+const json=(m,b)=>({method:m,headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+function say(t,ok){const m=$('#fMsg');m.textContent=t||'';m.classList.toggle('ok',!!ok)}
+function render(){
+ const q=$('#q').value.toLowerCase(),list=items.filter(p=>(p.name+' '+p.category).toLowerCase().includes(q));
+ $('#count').textContent='('+items.length+')';
+ $('#list').innerHTML=list.map(p=>`<div class="item"><img src="${esc(p.image)}" alt=""><div class="info"><strong>${esc(p.name)}</strong>${p.active?'':'<span class="tag w">HIDDEN</span>'}${p.inStock?'':'<span class="tag w">SOLD OUT</span>'}<div style="font-size:13px;color:#666;margin-top:3px">${esc(p.category)} · ${money(p.price)}${p.mrp?' <s>'+money(p.mrp)+'</s>':''} · Sizes: ${esc(p.sizes.join(', '))}</div><div class="acts"><button data-a="edit" data-id="${esc(p.id)}">EDIT</button><button class="ghost" data-a="active" data-id="${esc(p.id)}">${p.active?'HIDE':'SHOW'}</button><button class="ghost" data-a="stock" data-id="${esc(p.id)}">${p.inStock?'MARK SOLD OUT':'MARK IN STOCK'}</button><button class="red" data-a="del" data-id="${esc(p.id)}">DELETE</button></div></div></div>`).join('')||'<p style="color:#888">No products found.</p>'}
+async function load(){const d=await api('/api/products/admin/all');items=d.items;$('#importBox').classList.toggle('hidden',!d.canImport);render()}
+function fill(p){const f=$('#pForm');f.elements.id.value=p?p.id:'';['name','category','badge','price','mrp','image','description','fabric','color','fit','care','sortOrder'].forEach(k=>f.elements[k].value=p?(p[k]||(k==='sortOrder'?0:'')):(k==='category'?'Women':(k==='sortOrder'?0:'')));f.sizes.value=p?p.sizes.join(', '):'';f.active.checked=p?p.active:true;f.inStock.checked=p?p.inStock:true;$('#formTitle').textContent=p?'Edit: '+p.name:'Add product';pv();say('')}
+function pv(){const u=$('#pForm').image.value.trim();$('#pv').classList.toggle('hidden',!u);if(u)$('#pv').src=u}
+$('#pForm').image.addEventListener('input',pv);
+$('#resetBtn').onclick=()=>fill(null);
+document.querySelectorAll('[data-sz]').forEach(b=>b.onclick=()=>{$('#pForm').sizes.value=b.dataset.sz.split(',').join(', ')});
+$('#imgFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;$('#upMsg').textContent='Uploading...';const fd=new FormData();fd.append('image',file);fd.append('alt',$('#pForm').elements.name.value);try{const d=await api('/api/media/image',{method:'POST',body:fd});$('#pForm').image.value=d.url;pv();$('#upMsg').textContent='Uploaded.';$('#upMsg').classList.add('ok')}catch(x){$('#upMsg').classList.remove('ok');$('#upMsg').textContent=x.message+' (Image link paste karke bhi kaam chalega.)'}e.target.value=''};
+$('#pForm').onsubmit=async e=>{e.preventDefault();const f=e.target,b={name:f.elements.name.value,category:f.category.value,badge:f.badge.value,price:f.price.value,mrp:f.mrp.value,image:f.image.value,sizes:f.sizes.value,description:f.description.value,fabric:f.fabric.value,color:f.color.value,fit:f.fit.value,care:f.care.value,sortOrder:f.sortOrder.value,active:f.active.checked,inStock:f.inStock.checked},id=f.elements.id.value;
+ $('#saveBtn').disabled=true;try{await api('/api/products/admin'+(id?'/'+encodeURIComponent(id):''),json(id?'PUT':'POST',b));await load();fill(null);say('Saved. Website par update ho gaya.',true)}catch(x){say(x.message)}$('#saveBtn').disabled=false};
+$('#list').onclick=async e=>{const b=e.target.closest('[data-a]');if(!b)return;const p=items.find(x=>x.id===b.dataset.id);if(!p)return;
+ try{if(b.dataset.a==='edit'){fill(p);scrollTo({top:0,behavior:'smooth'})}
+ else if(b.dataset.a==='del'){if(confirm('Delete "'+p.name+'"? Ye wapas nahi aayega.')){await api('/api/products/admin/'+encodeURIComponent(p.id),{method:'DELETE'});await load()}}
+ else{await api('/api/products/admin/'+encodeURIComponent(p.id),json('PUT',{...p,active:b.dataset.a==='active'?!p.active:p.active,inStock:b.dataset.a==='stock'?!p.inStock:p.inStock}));await load()}}catch(x){alert(x.message)}};
+$('#q').oninput=render;
+$('#importBtn').onclick=async()=>{try{await api('/api/products/admin/import',{method:'POST'});await load()}catch(x){alert(x.message)}};
+$('#logout').onclick=()=>{localStorage.removeItem('zenzy-admin-token');token='';view(true)};
+$('#loginForm').onsubmit=async e=>{e.preventDefault();try{const r=await fetch('/api/auth/login',json('POST',Object.fromEntries(new FormData(e.target))));const d=await r.json();if(!r.ok)throw Error(d.error);token=d.token;localStorage.setItem('zenzy-admin-token',token);view(false);load()}catch(x){$('#loginMsg').textContent=x.message}};
+if(token){view(false);load().catch(()=>{})}else view(true);
+</script></body></html>
