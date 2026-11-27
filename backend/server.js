@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const products = require('./data/products.json');
+const seedProducts = require('./data/products.json');
 
 const app = express();
 const FRONT = path.join(__dirname, '..', 'frontend');
