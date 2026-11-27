@@ -468,7 +468,7 @@ router.post('/sales', asyncRoute(async (req, res) => {
   }
 
   const discount = number(b.discount);
-  const total = subtotal + taxAmount - discount;
+  const total = Math.round((subtotal + taxAmount - discount) * 100) / 100;
   const paid = Math.round(number(b.paid) * 100) / 100;
 
   if (discount < 0 || discount > subtotal + taxAmount ||
