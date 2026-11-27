@@ -78,7 +78,10 @@ function calculate(items, discount = 0) {
 router.get('/dashboard', asyncRoute(async (req, res) => {
   const now = new Date();
   const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
+  const IST = 5.5 * 3600000;
+  const istDay = new Date(now.getTime() + IST);
+  istDay.setUTCHours(0, 0, 0, 0);
+  start.setTime(istDay.getTime() - IST);
 
   const end = new Date(start);
   end.setDate(end.getDate() + 1);
