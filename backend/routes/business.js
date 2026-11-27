@@ -338,7 +338,7 @@ router.post('/purchases', asyncRoute(async (req, res) => {
   );
   const extraCost = number(b.extraCost);
   const total = subtotal + taxAmount + extraCost;
-  const paid = number(b.paid);
+  const paid = Math.round(number(b.paid) * 100) / 100;
 
   if (extraCost < 0 || paid < 0 || paid > total)
     return res.status(400).json({ error: 'Invalid purchase payment.' });
@@ -469,7 +469,7 @@ router.post('/sales', asyncRoute(async (req, res) => {
 
   const discount = number(b.discount);
   const total = subtotal + taxAmount - discount;
-  const paid = number(b.paid);
+  const paid = Math.round(number(b.paid) * 100) / 100;
 
   if (discount < 0 || discount > subtotal + taxAmount ||
       paid < 0 || paid > total) {
