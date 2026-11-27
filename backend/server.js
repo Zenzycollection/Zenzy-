@@ -42,7 +42,7 @@ app.post('/api/orders', async (req, res) => {
   let total = 0;
   for (const it of items) {
     const p = products.find(x => x.id === it.id), qty = Math.floor(Number(it.qty));
-    if (!p || !(qty > 0 && qty <= 20)) return res.status(400).json({ error: 'One or more items are invalid.' });
+    if (!p || p.inStock === false || !(qty > 0 && qty <= 20)) return res.status(400).json({ error: 'One or more items are invalid.' });
     total += p.price * qty;
   }
   const orderId = 'ZEN-' + crypto.randomBytes(3).toString('hex').toUpperCase();
