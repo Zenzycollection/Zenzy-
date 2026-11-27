@@ -56,7 +56,8 @@ app.post('/api/contact', (req, res) => {
   res.json({ message: 'Thanks, we will get back to you soon.' });
 });
 
-app.use('/api/auth', require('./routes/auth'));
+// Business management APIs
+app.use('/api/business', needDb, require('./routes/business'));
 app.use('/api/articles', needDb, require('./routes/articles'));
 app.use('/api/newsletter', needDb, require('./routes/newsletter'));
 app.use('/api/bookings', needDb, require('./routes/bookings'));
