@@ -34,7 +34,8 @@ app.get('/api/health', (req, res) => res.json({ ok: true, db: mongoose.connectio
 const productsRouter = require('./routes/products')(connectDb, seedProducts);
 app.use('/api/products', productsRouter);
 app.get('/api/categories', async (req, res) => res.json(['All', ...new Set((await productsRouter.getAll()).map(p => p.category))]));
-app.post('/api/orders', (req, res) => {
+app.post('/api/orders', async (req, res) => {
+  const products = await productsRouter.getAll();
   const c = (req.body && req.body.customer) || {}, items = Array.isArray(req.body && req.body.items) ? req.body.items : [];
   if (!String(c.name || '').trim() || !emailOk(c.email) || !String(c.phone || '').trim() || !String(c.address || '').trim()) return res.status(400).json({ error: 'Please fill in all delivery details.' });
   if (!items.length) return res.status(400).json({ error: 'Your bag is empty.' });
