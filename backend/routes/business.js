@@ -143,7 +143,7 @@ router.get('/dashboard', asyncRoute(async (req, res) => {
 // --------------------------------------------------
 
 router.get('/products', asyncRoute(async (req, res) => {
-  const q = clean(req.query.q);
+  const q = clean(req.query.q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 60);
   const filter = { active: true };
 
   if (q) {
