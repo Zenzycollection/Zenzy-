@@ -337,7 +337,7 @@ router.post('/purchases', asyncRoute(async (req, res) => {
     (s, x) => s + x.total * x.gstRate / 100, 0
   );
   const extraCost = number(b.extraCost);
-  const total = subtotal + taxAmount + extraCost;
+  const total = Math.round((subtotal + taxAmount + extraCost) * 100) / 100;
   const paid = Math.round(number(b.paid) * 100) / 100;
 
   if (extraCost < 0 || paid < 0 || paid > total)
