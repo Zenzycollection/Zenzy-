@@ -1,0 +1,908 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zenzy Business Manager</title>
+
+<style>
+:root{
+  --dark:#171717;
+  --gold:#B99B6B;
+  --bg:#F5F1E9;
+  --white:#fff;
+  --muted:#777;
+  --border:#e8e2d8;
+  --green:#23845b;
+  --red:#c34e4e;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--dark);
+  font-family:Arial,sans-serif;
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.layout{display:flex;min-height:100vh}
+.sidebar{
+  width:245px;background:var(--dark);color:white;
+  padding:22px 14px;flex-shrink:0;
+}
+.brand{
+  font-family:Georgia,serif;font-size:19px;
+  letter-spacing:3px;padding:8px 10px 24px;
+}
+.brand small{
+  display:block;font:10px Arial;letter-spacing:2px;
+  color:var(--gold);margin-top:7px;
+}
+.nav-title{
+  color:#aaa;font-size:10px;letter-spacing:2px;
+  padding:15px 10px 7px;
+}
+.nav button{
+  width:100%;border:0;background:none;color:#ddd;
+  text-align:left;padding:12px 11px;margin:2px 0;
+  border-radius:6px;font-size:13px;
+}
+.nav button:hover,.nav button.active{
+  background:#34312c;color:white;
+}
+.nav button.active{border-left:3px solid var(--gold)}
+.main{flex:1;min-width:0}
+.topbar{
+  background:white;border-bottom:1px solid var(--border);
+  padding:17px 26px;display:flex;justify-content:space-between;
+  align-items:center;gap:12px;
+}
+.topbar a{color:var(--dark);text-decoration:none;font-size:12px}
+.content{padding:26px;max-width:1500px;margin:auto}
+.page{display:none}
+.page.active{display:block}
+h1,h2,h3{font-family:Georgia,serif;font-weight:500}
+h1{font-size:30px;margin:0 0 8px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:24px}
+.cards{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:14px;margin-bottom:22px;
+}
+.card{
+  background:white;border:1px solid var(--border);
+  border-radius:10px;padding:18px;
+}
+.card label{font-size:11px;color:var(--muted)}
+.card strong{display:block;font-size:25px;margin-top:10px}
+.panel{
+  background:white;border:1px solid var(--border);
+  border-radius:10px;padding:20px;margin-bottom:18px;
+}
+.panel h2{margin:0 0 18px;font-size:23px}
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:13px;
+}
+.field label{
+  display:block;font-size:11px;color:#666;
+  margin-bottom:7px;text-transform:uppercase;
+}
+input,select,textarea{
+  width:100%;padding:11px;border:1px solid var(--border);
+  border-radius:6px;background:white;min-width:0;
+}
+textarea{min-height:75px}
+.btn{
+  background:var(--dark);color:white;border:0;
+  border-radius:6px;padding:11px 16px;margin:12px 5px 0 0;
+}
+.btn.gold{background:var(--gold)}
+.btn.light{background:#eee;color:#222}
+.btn.danger{background:var(--red)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:550px}
+th,td{
+  padding:12px;text-align:left;border-bottom:1px solid #eee;
+  font-size:12px;
+}
+th{color:#777;font-weight:600;background:#faf9f7}
+.empty{color:#999;padding:20px 0;font-size:13px}
+.status{padding:5px 8px;border-radius:20px;background:#f1eee8}
+.msg{font-size:13px;margin-top:12px;white-space:pre-wrap}
+.good{color:var(--green)}
+.bad{color:var(--red)}
+.mobile-menu{display:none}
+@media(max-width:850px){
+  .sidebar{width:210px}
+  .content{padding:17px}
+}
+@media(max-width:650px){
+  .layout{display:block}
+  .sidebar{width:100%;padding:12px}
+  .brand{padding:5px 8px 12px}
+  .nav-title{display:none}
+  .nav{
+    display:flex;overflow-x:auto;gap:5px;
+    scrollbar-width:none;
+  }
+  .nav button{
+    width:auto;white-space:nowrap;flex-shrink:0;
+    padding:10px;font-size:12px;
+  }
+  .topbar{padding:13px 15px}
+  .content{padding:13px}
+  .panel{padding:15px}
+  h1{font-size:25px}
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <div class="brand">
+    ZENZY COLLECTION
+    <small>BUSINESS MANAGEMENT</small>
+  </div>
+
+  <div class="nav-title">BUSINESS</div>
+  <nav class="nav">
+    <button class="active" data-page="dashboard">Dashboard</button>
+    <button data-page="sales">Sales & POS</button>
+    <button data-page="products">Products</button>
+    <button data-page="purchases">Purchases</button>
+    <button data-page="suppliers">Suppliers</button>
+    <button data-page="customers">Customers</button>
+    <button data-page="expenses">Expenses</button>
+    <button data-page="stock">Stock History</button>
+    <button data-page="accounts">Accounts</button>
+    <button data-page="reports">Reports</button>
+  </nav>
+
+  <div class="nav-title">WEBSITE</div>
+  <nav class="nav">
+    <button onclick="location.href='/admin'">Website CMS</button>
+  </nav>
+</aside>
+
+<main class="main">
+
+<header class="topbar">
+  <strong id="pageTitle">Business Dashboard</strong>
+  <button class="btn light" onclick="logout()">LOG OUT</button>
+</header>
+
+<div class="content">
+
+<!-- DASHBOARD -->
+<section class="page active" id="dashboard">
+  <h1>Business Overview</h1>
+  <p class="subtitle">Your business performance at a glance.</p>
+
+  <div class="cards">
+    <div class="card"><label>Today's Sales</label><strong id="todaySales">₹0</strong></div>
+    <div class="card"><label>Payments Received</label><strong id="received">₹0</strong></div>
+    <div class="card"><label>Today's Purchases</label><strong id="todayPurchases">₹0</strong></div>
+    <div class="card"><label>Today's Expenses</label><strong id="todayExpenses">₹0</strong></div>
+    <div class="card"><label>Total Products</label><strong id="totalProducts">0</strong></div>
+    <div class="card"><label>Low Stock Items</label><strong id="lowStock">0</strong></div>
+    <div class="card"><label>Customer Dues</label><strong id="customerDues">₹0</strong></div>
+    <div class="card"><label>Supplier Dues</label><strong id="supplierDues">₹0</strong></div>
+  </div>
+
+  <div class="panel">
+    <h2>Low Stock Alerts</h2>
+    <div id="lowStockList" class="empty">Loading...</div>
+  </div>
+</section>
+
+<!-- SALES -->
+<section class="page" id="sales">
+  <h1>Sales & POS Billing</h1>
+  <p class="subtitle">Create customer bills and record payments.</p>
+
+  <div class="panel">
+    <h2>Create New Sale</h2>
+
+    <div class="grid">
+      <div class="field">
+        <label>Customer Name</label>
+        <input id="saleCustomerName" placeholder="Walk-in customer">
+      </div>
+      <div class="field">
+        <label>Payment Method</label>
+        <select id="saleMethod">
+          <option value="cash">Cash</option>
+          <option value="upi">UPI</option>
+          <option value="card">Card</option>
+          <option value="bank">Bank Transfer</option>
+          <option value="credit">Credit</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:15px">
+      <label>Select Product</label>
+      <select id="saleProduct"></select>
+    </div>
+
+    <div class="grid" style="margin-top:12px">
+      <div class="field">
+        <label>Quantity</label>
+        <input id="saleQty" type="number" min="1" value="1">
+      </div>
+      <div class="field">
+        <label>Unit Selling Price</label>
+        <input id="salePrice" type="number" min="0" step=".01">
+      </div>
+    </div>
+
+    <button class="btn" onclick="addSaleItem()">ADD PRODUCT</button>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th><th></th></tr></thead>
+        <tbody id="saleCart"></tbody>
+      </table>
+    </div>
+
+    <div class="grid" style="margin-top:18px">
+      <div class="field">
+        <label>Discount (₹)</label>
+        <input id="saleDiscount" type="number" min="0" value="0" oninput="renderSaleCart()">
+      </div>
+      <div class="field">
+        <label>Amount Received (₹)</label>
+        <input id="salePaid" type="number" min="0" step=".01">
+      </div>
+    </div>
+
+    <h2 id="saleTotal" style="margin-top:20px">Total: ₹0</h2>
+    <div id="saleDue"></div>
+    <button class="btn gold" onclick="saveSale()">COMPLETE SALE</button>
+    <div id="saleMsg" class="msg"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Recent Sales</h2>
+    <div id="salesList">Loading...</div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section class="page" id="products">
+  <h1>Products & Inventory</h1>
+  <p class="subtitle">Manage product information and stock levels.</p>
+
+  <div class="panel">
+    <h2>Add New Product</h2>
+    <div class="grid">
+      <div class="field"><label>Product Name</label><input id="pName"></div>
+      <div class="field"><label>SKU (Unique)</label><input id="pSku"></div>
+      <div class="field"><label>Barcode</label><input id="pBarcode"></div>
+      <div class="field"><label>Category</label><input id="pCategory" value="General"></div>
+      <div class="field"><label>Purchase Cost</label><input id="pCost" type="number" min="0"></div>
+      <div class="field"><label>Selling Price</label><input id="pPrice" type="number" min="0"></div>
+      <div class="field"><label>MRP</label><input id="pMrp" type="number" min="0"></div>
+      <div class="field"><label>GST %</label><input id="pGst" type="number" min="0" max="100" value="0"></div>
+      <div class="field"><label>HSN Code</label><input id="pHsn"></div>
+      <div class="field"><label>Low Stock Alert</label><input id="pLow" type="number" min="0" value="5"></div>
+      <div class="field"><label>Sizes (comma separated)</label><input id="pSizes" placeholder="S,M,L,XL"></div>
+      <div class="field"><label>Colours (comma separated)</label><input id="pColors" placeholder="Black,White"></div>
+    </div>
+    <button class="btn gold" onclick="saveProduct()">SAVE PRODUCT</button>
+    <div id="productMsg" class="msg"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Product List</h2>
+    <input id="productSearch" placeholder="Search product or SKU..." oninput="renderProducts()">
+    <div id="productList"></div>
+  </div>
+</section>
+
+<!-- PURCHASES -->
+<section class="page" id="purchases">
+  <h1>Purchase Management</h1>
+  <p class="subtitle">Record supplier purchases and received stock.</p>
+
+  <div class="panel">
+    <h2>New Purchase</h2>
+    <div class="grid">
+      <div class="field"><label>Supplier</label><select id="purchaseSupplier"></select></div>
+      <div class="field"><label>Supplier Invoice Number</label><input id="purchaseInvoice"></div>
+      <div class="field"><label>Product</label><select id="purchaseProduct"></select></div>
+      <div class="field"><label>Quantity</label><input id="purchaseQty" type="number" min="1" value="1"></div>
+      <div class="field"><label>Unit Purchase Cost</label><input id="purchaseCost" type="number" min="0"></div>
+      <div class="field"><label>Extra Costs (₹)</label><input id="purchaseExtra" type="number" min="0" value="0"></div>
+      <div class="field"><label>Amount Paid (₹)</label><input id="purchasePaid" type="number" min="0"></div>
+      <div class="field"><label>Payment Method</label>
+        <select id="purchaseMethod"><option value="cash">Cash</option><option value="upi">UPI</option><option value="bank">Bank</option><option value="card">Card</option></select>
+      </div>
+    </div>
+    <button class="btn gold" onclick="savePurchase()">SAVE PURCHASE</button>
+    <div id="purchaseMsg" class="msg"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Purchase History</h2>
+    <div id="purchaseList"></div>
+  </div>
+</section>
+
+<!-- SUPPLIERS -->
+<section class="page" id="suppliers">
+  <h1>Supplier Management</h1>
+  <div class="panel">
+    <h2>Add Supplier</h2>
+    <div class="grid">
+      <div class="field"><label>Supplier Name</label><input id="sName"></div>
+      <div class="field"><label>Phone</label><input id="sPhone"></div>
+      <div class="field"><label>Email</label><input id="sEmail"></div>
+      <div class="field"><label>GSTIN</label><input id="sGstin"></div>
+    </div>
+    <div class="field" style="margin-top:12px"><label>Address</label><textarea id="sAddress"></textarea></div>
+    <button class="btn gold" onclick="saveSupplier()">SAVE SUPPLIER</button>
+    <div id="supplierMsg" class="msg"></div>
+  </div>
+  <div class="panel"><h2>Supplier List</h2><div id="supplierList"></div></div>
+</section>
+
+<!-- CUSTOMERS -->
+<section class="page" id="customers">
+  <h1>Customer Management</h1>
+  <div class="panel">
+    <h2>Add Customer</h2>
+    <div class="grid">
+      <div class="field"><label>Name</label><input id="cName"></div>
+      <div class="field"><label>Phone</label><input id="cPhone"></div>
+      <div class="field"><label>Email</label><input id="cEmail"></div>
+      <div class="field"><label>GSTIN</label><input id="cGstin"></div>
+    </div>
+    <button class="btn gold" onclick="saveCustomer()">SAVE CUSTOMER</button>
+    <div id="customerMsg" class="msg"></div>
+  </div>
+  <div class="panel"><h2>Customer List</h2><div id="customerList"></div></div>
+</section>
+
+<!-- EXPENSES -->
+<section class="page" id="expenses">
+  <h1>Income & Expenses</h1>
+  <div class="panel">
+    <h2>Record Business Expense</h2>
+    <div class="grid">
+      <div class="field"><label>Expense Title</label><input id="eTitle"></div>
+      <div class="field">
+        <label>Category</label>
+        <select id="eCategory">
+          <option>Rent</option><option>Salary</option>
+          <option>Electricity</option><option>Transport</option>
+          <option>Packaging</option><option>Marketing</option>
+          <option>Maintenance</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field"><label>Amount</label><input id="eAmount" type="number" min="0"></div>
+      <div class="field">
+        <label>Payment Method</label>
+        <select id="eMethod">
+          <option value="cash">Cash</option><option value="upi">UPI</option>
+          <option value="bank">Bank</option><option value="card">Card</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn gold" onclick="saveExpense()">SAVE EXPENSE</button>
+    <div id="expenseMsg" class="msg"></div>
+  </div>
+  <div class="panel"><h2>Expense History</h2><div id="expenseList"></div></div>
+</section>
+
+<!-- STOCK -->
+<section class="page" id="stock">
+  <h1>Stock History</h1>
+  <div class="panel">
+    <h2>Adjust Stock</h2>
+    <div class="grid">
+      <div class="field"><label>Product</label><select id="adjustProduct"></select></div>
+      <div class="field"><label>Quantity Change (+ or -)</label><input id="adjustQty" type="number" step="1"></div>
+      <div class="field"><label>Reason</label><input id="adjustReason"></div>
+    </div>
+    <button class="btn gold" onclick="adjustStock()">UPDATE STOCK</button>
+    <div id="stockMsg" class="msg"></div>
+  </div>
+  <div class="panel"><h2>Movement Records</h2><div id="movementList"></div></div>
+</section>
+
+<!-- ACCOUNTS -->
+<section class="page" id="accounts">
+  <h1>Cash & Bank Accounts</h1>
+  <div class="panel">
+    <h2>Create Account</h2>
+    <div class="grid">
+      <div class="field"><label>Account Name</label><input id="aName" placeholder="Cash Counter"></div>
+      <div class="field">
+        <label>Account Type</label>
+        <select id="aType"><option value="cash">Cash</option><option value="bank">Bank</option><option value="upi">UPI</option><option value="other">Other</option></select>
+      </div>
+      <div class="field"><label>Opening Balance</label><input id="aBalance" type="number" value="0"></div>
+    </div>
+    <button class="btn gold" onclick="saveAccount()">SAVE ACCOUNT</button>
+    <div id="accountMsg" class="msg"></div>
+  </div>
+  <div class="panel"><h2>Accounts</h2><div id="accountList"></div></div>
+</section>
+
+<!-- REPORTS -->
+<section class="page" id="reports">
+  <h1>Business Reports</h1>
+  <div class="panel">
+    <h2>Profit & Loss Report</h2>
+    <div class="grid">
+      <div class="field"><label>From Date</label><input type="date" id="reportFrom"></div>
+      <div class="field"><label>To Date</label><input type="date" id="reportTo"></div>
+    </div>
+    <button class="btn gold" onclick="loadReport()">GENERATE REPORT</button>
+    <div id="reportResult" style="margin-top:20px"></div>
+  </div>
+</section>
+
+</div>
+</main>
+</div>
+
+<script>
+const TOKEN_KEY='zenzy-admin-token';
+let token=localStorage.getItem(TOKEN_KEY)||'';
+let products=[],suppliers=[],customers=[],saleCart=[];
+
+const $=id=>document.getElementById(id);
+const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function api(url,options={}){
+  const response=await fetch('/api/business'+url,{
+    ...options,
+    headers:{
+      'Content-Type':'application/json',
+      Authorization:'Bearer '+token,
+      ...(options.headers||{})
+    }
+  });
+  const data=await response.json();
+  if(response.status===401){
+    localStorage.removeItem(TOKEN_KEY);
+    location.href='/admin';
+    throw Error('Login expired.');
+  }
+  if(!response.ok)throw Error(data.error||'Request failed.');
+  return data;
+}
+
+function send(url,body){
+  return api(url,{method:'POST',body:JSON.stringify(body)});
+}
+
+function logout(){
+  localStorage.removeItem(TOKEN_KEY);
+  location.href='/admin';
+}
+
+function message(id,text,ok=true){
+  $(id).textContent=text;
+  $(id).className='msg '+(ok?'good':'bad');
+}
+
+function table(items,columns){
+  if(!items?.length)return '<p class="empty">No records found.</p>';
+  return '<div class="table-wrap"><table><thead><tr>'+
+    columns.map(c=>'<th>'+c.label+'</th>').join('')+
+    '</tr></thead><tbody>'+
+    items.map(x=>'<tr>'+columns.map(c=>
+      '<td>'+esc(c.value(x))+'</td>'
+    ).join('')+'</tr>').join('')+
+    '</tbody></table></div>';
+}
+
+function setOptions(id,items,placeholder){
+  $(id).innerHTML='<option value="">'+placeholder+'</option>'+
+    items.map(x=>'<option value="'+esc(x._id)+'">'+
+    esc(x.name)+' ('+esc(x.sku||x.phone||'')+')</option>').join('');
+}
+
+async function loadDashboard(){
+  const d=await api('/dashboard');
+  $('todaySales').textContent=money(d.todaySales);
+  $('received').textContent=money(d.todayReceived);
+  $('todayPurchases').textContent=money(d.todayPurchases);
+  $('todayExpenses').textContent=money(d.todayExpenses);
+  $('totalProducts').textContent=d.totalProducts;
+  $('lowStock').textContent=d.lowStockCount;
+  $('customerDues').textContent=money(d.pendingCustomerPayments);
+  $('supplierDues').textContent=money(d.pendingSupplierPayments);
+  $('lowStockList').innerHTML=table(d.lowStockItems,[
+    {label:'Product',value:x=>x.name},
+    {label:'SKU',value:x=>x.sku},
+    {label:'Stock',value:x=>x.stock},
+    {label:'Alert At',value:x=>x.lowStockAt}
+  ]);
+}
+
+async function loadProducts(){
+  products=(await api('/products')).items;
+  setOptions('saleProduct',products,'Select product');
+  setOptions('purchaseProduct',products,'Select product');
+  setOptions('adjustProduct',products,'Select product');
+  renderProducts();
+}
+
+function renderProducts(){
+  const q=($('productSearch')?.value||'').toLowerCase();
+  const list=products.filter(p=>(p.name+' '+p.sku).toLowerCase().includes(q));
+  $('productList').innerHTML=table(list,[
+    {label:'Product',value:x=>x.name},
+    {label:'SKU',value:x=>x.sku},
+    {label:'Cost',value:x=>money(x.costPrice)},
+    {label:'Selling',value:x=>money(x.sellingPrice)},
+    {label:'Stock',value:x=>x.stock},
+    {label:'Status',value:x=>x.stock<=x.lowStockAt?'LOW STOCK':'AVAILABLE'}
+  ]);
+}
+
+async function saveProduct(){
+  try{
+    const b={
+      name:$('pName').value,
+      sku:$('pSku').value,
+      barcode:$('pBarcode').value,
+      category:$('pCategory').value,
+      costPrice:Number($('pCost').value),
+      sellingPrice:Number($('pPrice').value),
+      mrp:Number($('pMrp').value),
+      gstRate:Number($('pGst').value),
+      hsn:$('pHsn').value,
+      lowStockAt:Number($('pLow').value),
+      sizes:$('pSizes').value.split(',').map(x=>x.trim()).filter(Boolean),
+      colors:$('pColors').value.split(',').map(x=>x.trim()).filter(Boolean)
+    };
+    await send('/products',b);
+    message('productMsg','Product saved successfully.');
+    ['pName','pSku','pBarcode','pCost','pPrice','pMrp','pHsn','pSizes','pColors'].forEach(id=>$(id).value='');
+    await loadProducts();
+    await loadDashboard();
+  }catch(e){message('productMsg',e.message,false)}
+}
+
+$('saleProduct').onchange=()=>{
+  const p=products.find(x=>x._id===$('saleProduct').value);
+  $('salePrice').value=p?p.sellingPrice:'';
+};
+
+function addSaleItem(){
+  const p=products.find(x=>x._id===$('saleProduct').value);
+  const qty=Number($('saleQty').value);
+  const price=Number($('salePrice').value);
+
+  if(!p||!Number.isInteger(qty)||qty<=0||price<0){
+    message('saleMsg','Select a product and enter valid quantity and price.',false);
+    return;
+  }
+
+  if(qty>p.stock){
+    message('saleMsg','Available stock: '+p.stock,false);
+    return;
+  }
+
+  const existing=saleCart.find(x=>x.product===p._id);
+  if(existing){
+    if(existing.quantity+qty>p.stock){
+      message('saleMsg','Insufficient stock.',false);
+      return;
+    }
+    existing.quantity+=qty;
+  }else{
+    saleCart.push({
+      product:p._id,
+      name:p.name,
+      quantity:qty,
+      price,
+      stock:p.stock,
+      gstRate:p.gstRate
+    });
+  }
+
+  renderSaleCart();
+}
+
+function renderSaleCart(){
+  $('saleCart').innerHTML=saleCart.map((x,i)=>
+    '<tr><td>'+esc(x.name)+'</td><td>'+x.quantity+'</td><td>'+
+    money(x.price)+'</td><td>'+money(x.quantity*x.price)+'</td>'+
+    '<td><button class="btn danger" onclick="removeSaleItem('+i+')">X</button></td></tr>'
+  ).join('');
+
+  const subtotal=saleCart.reduce((s,x)=>s+x.quantity*x.price*(1+x.gstRate/100),0);
+  const discount=Number($('saleDiscount').value||0);
+  const total=Math.max(0,subtotal-discount);
+  $('saleTotal').textContent='Total: '+money(total);
+  $('saleDue').textContent='Remaining: '+money(Math.max(0,total-Number($('salePaid').value||0)));
+}
+
+function removeSaleItem(i){
+  saleCart.splice(i,1);
+  renderSaleCart();
+}
+
+async function saveSale(){
+  try{
+    if(!saleCart.length)throw Error('Add products first.');
+
+    const subtotal=saleCart.reduce((s,x)=>s+x.quantity*x.price*(1+x.gstRate/100),0);
+    const discount=Number($('saleDiscount').value||0);
+    const total=subtotal-discount;
+    const paid=Number($('salePaid').value||0);
+
+    if(discount<0||discount>subtotal||paid<0||paid>total)
+      throw Error('Check discount and payment amount.');
+
+    const result=await send('/sales',{
+      customerName:$('saleCustomerName').value,
+      items:saleCart.map(x=>({
+        product:x.product,
+        quantity:x.quantity,
+        unitPrice:x.price
+      })),
+      discount,
+      paid,
+      paymentMethod:$('saleMethod').value
+    });
+
+    message('saleMsg','Sale completed: '+result.item.saleNo);
+    saleCart=[];
+    $('salePaid').value='';
+    $('saleDiscount').value='0';
+    renderSaleCart();
+    await Promise.all([loadProducts(),loadDashboard(),loadSales()]);
+  }catch(e){message('saleMsg',e.message,false)}
+}
+
+async function loadSales(){
+  const items=(await api('/sales')).items;
+  $('salesList').innerHTML=table(items.slice(0,50),[
+    {label:'Invoice',value:x=>x.saleNo},
+    {label:'Customer',value:x=>x.customerName},
+    {label:'Total',value:x=>money(x.total)},
+    {label:'Paid',value:x=>money(x.paid)},
+    {label:'Due',value:x=>money(x.due)},
+    {label:'Date',value:x=>new Date(x.saleDate).toLocaleDateString('en-IN')}
+  ]);
+}
+
+async function loadSuppliers(){
+  suppliers=(await api('/suppliers')).items;
+  setOptions('purchaseSupplier',suppliers,'Select supplier');
+  $('supplierList').innerHTML=table(suppliers,[
+    {label:'Name',value:x=>x.name},
+    {label:'Phone',value:x=>x.phone},
+    {label:'Email',value:x=>x.email},
+    {label:'GSTIN',value:x=>x.gstin}
+  ]);
+}
+
+async function saveSupplier(){
+  try{
+    await send('/suppliers',{
+      name:$('sName').value,phone:$('sPhone').value,
+      email:$('sEmail').value,gstin:$('sGstin').value,
+      address:$('sAddress').value
+    });
+    message('supplierMsg','Supplier saved.');
+    await loadSuppliers();
+  }catch(e){message('supplierMsg',e.message,false)}
+}
+
+async function loadCustomers(){
+  customers=(await api('/customers')).items;
+  $('customerList').innerHTML=table(customers,[
+    {label:'Name',value:x=>x.name},
+    {label:'Phone',value:x=>x.phone},
+    {label:'Email',value:x=>x.email},
+    {label:'GSTIN',value:x=>x.gstin}
+  ]);
+}
+
+async function saveCustomer(){
+  try{
+    await send('/customers',{
+      name:$('cName').value,phone:$('cPhone').value,
+      email:$('cEmail').value,gstin:$('cGstin').value
+    });
+    message('customerMsg','Customer saved.');
+    await loadCustomers();
+  }catch(e){message('customerMsg',e.message,false)}
+}
+
+async function savePurchase(){
+  try{
+    const product=products.find(x=>x._id===$('purchaseProduct').value);
+    if(!product)throw Error('Select a product.');
+
+    const qty=Number($('purchaseQty').value);
+    const cost=Number($('purchaseCost').value);
+    const extra=Number($('purchaseExtra').value);
+    const subtotal=qty*cost;
+    const tax=subtotal*product.gstRate/100;
+    const total=subtotal+tax+extra;
+    const paid=Number($('purchasePaid').value||0);
+
+    if(!Number.isInteger(qty)||qty<=0||cost<0||extra<0||paid<0||paid>total)
+      throw Error('Check purchase quantity, costs and payment.');
+
+    const d=await send('/purchases',{
+      supplier:$('purchaseSupplier').value,
+      invoiceNo:$('purchaseInvoice').value,
+      items:[{
+        product:product._id,
+        quantity:qty,
+        unitCost:cost
+      }],
+      extraCost:extra,
+      paid,
+      paymentMethod:$('purchaseMethod').value
+    });
+
+    message('purchaseMsg','Purchase saved: '+d.item.purchaseNo);
+    await Promise.all([loadProducts(),loadDashboard(),loadPurchases()]);
+  }catch(e){message('purchaseMsg',e.message,false)}
+}
+
+async function loadPurchases(){
+  const items=(await api('/purchases')).items;
+  $('purchaseList').innerHTML=table(items,[
+    {label:'Purchase No',value:x=>x.purchaseNo},
+    {label:'Supplier',value:x=>x.supplierName},
+    {label:'Total',value:x=>money(x.total)},
+    {label:'Paid',value:x=>money(x.paid)},
+    {label:'Due',value:x=>money(x.due)},
+    {label:'Date',value:x=>new Date(x.purchaseDate).toLocaleDateString('en-IN')}
+  ]);
+}
+
+async function saveExpense(){
+  try{
+    await send('/expenses',{
+      title:$('eTitle').value,
+      category:$('eCategory').value,
+      amount:Number($('eAmount').value),
+      paymentMethod:$('eMethod').value
+    });
+    message('expenseMsg','Expense saved.');
+    await Promise.all([loadExpenses(),loadDashboard()]);
+  }catch(e){message('expenseMsg',e.message,false)}
+}
+
+async function loadExpenses(){
+  const items=(await api('/expenses')).items;
+  $('expenseList').innerHTML=table(items,[
+    {label:'Title',value:x=>x.title},
+    {label:'Category',value:x=>x.category},
+    {label:'Amount',value:x=>money(x.amount)},
+    {label:'Method',value:x=>x.paymentMethod},
+    {label:'Date',value:x=>new Date(x.expenseDate).toLocaleDateString('en-IN')}
+  ]);
+}
+
+async function adjustStock(){
+  try{
+    await send('/stock-adjustment',{
+      product:$('adjustProduct').value,
+      quantity:Number($('adjustQty').value),
+      reason:$('adjustReason').value
+    });
+    message('stockMsg','Stock adjusted.');
+    await Promise.all([loadProducts(),loadMovements(),loadDashboard()]);
+  }catch(e){message('stockMsg',e.message,false)}
+}
+
+async function loadMovements(){
+  const items=(await api('/stock-movements')).items;
+  $('movementList').innerHTML=table(items,[
+    {label:'Product',value:x=>x.productName},
+    {label:'Type',value:x=>x.type},
+    {label:'Change',value:x=>x.quantity},
+    {label:'Before',value:x=>x.beforeStock},
+    {label:'After',value:x=>x.afterStock},
+    {label:'Date',value:x=>new Date(x.createdAt).toLocaleString('en-IN')}
+  ]);
+}
+
+async function saveAccount(){
+  try{
+    await send('/accounts',{
+      name:$('aName').value,
+      type:$('aType').value,
+      openingBalance:Number($('aBalance').value)
+    });
+    message('accountMsg','Account created.');
+    await loadAccounts();
+  }catch(e){message('accountMsg',e.message,false)}
+}
+
+async function loadAccounts(){
+  const items=(await api('/accounts')).items;
+  $('accountList').innerHTML=table(items,[
+    {label:'Name',value:x=>x.name},
+    {label:'Type',value:x=>x.type},
+    {label:'Opening Balance',value:x=>money(x.openingBalance)}
+  ]);
+}
+
+async function loadReport(){
+  try{
+    const from=$('reportFrom').value;
+    const to=$('reportTo').value;
+    const query='?from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to);
+    const d=await api('/reports'+query);
+
+    const rows=[
+      ['Sales count',d.salesCount],
+      ['Revenue before tax',money(d.revenue)],
+      ['Discount',money(d.discount)],
+      ['Tax collected',money(d.taxCollected)],
+      ['Cost of goods sold',money(d.cogs)],
+      ['Gross profit',money(d.grossProfit)],
+      ['Operating expenses',money(d.expenses)],
+      ['Estimated operating profit',money(d.netOperatingProfit)],
+      ['Purchase value',money(d.purchaseValue)],
+      ['Customer outstanding',money(d.customerOutstanding)],
+      ['Supplier outstanding',money(d.supplierOutstanding)]
+    ];
+
+    $('reportResult').innerHTML=table(rows.map(x=>({label:x[0],value:x[1]})),[
+      {label:'Financial Metric',value:x=>x.label},
+      {label:'Value',value:x=>x.value}
+    ]);
+  }catch(e){
+    $('reportResult').textContent=e.message;
+  }
+}
+
+const loaders={
+  dashboard:loadDashboard,
+  sales:async()=>{await Promise.all([loadProducts(),loadSales()])},
+  products:loadProducts,
+  purchases:async()=>{await Promise.all([loadProducts(),loadSuppliers(),loadPurchases()])},
+  suppliers:loadSuppliers,
+  customers:loadCustomers,
+  expenses:loadExpenses,
+  stock:async()=>{await Promise.all([loadProducts(),loadMovements()])},
+  accounts:loadAccounts
+};
+
+document.querySelectorAll('[data-page]').forEach(button=>{
+  button.onclick=async()=>{
+    document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===button));
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    $(button.dataset.page).classList.add('active');
+    $('pageTitle').textContent=button.textContent;
+    try{if(loaders[button.dataset.page])await loaders[button.dataset.page]();}
+    catch(e){alert(e.message)}
+  };
+});
+
+async function init(){
+  if(!token){
+    location.href='/admin';
+    return;
+  }
+  try{
+    await loadDashboard();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
