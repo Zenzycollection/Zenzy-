@@ -359,7 +359,7 @@ router.post('/purchases', asyncRoute(async (req, res) => {
         extraCost,
         total,
         paid,
-        due: total - paid,
+        due: Math.round((total - paid) * 100) / 100,
         paymentMethod: clean(b.paymentMethod) || 'cash',
         notes: clean(b.notes)
       }], { session });
@@ -500,7 +500,7 @@ router.post('/sales', asyncRoute(async (req, res) => {
         taxAmount,
         total,
         paid,
-        due: total - paid,
+        due: Math.round((total - paid) * 100) / 100,
         paymentMethod: clean(b.paymentMethod) || 'cash',
         status: paid === total ? 'completed' : paid > 0 ? 'partial' : 'credit',
         notes: clean(b.notes)
