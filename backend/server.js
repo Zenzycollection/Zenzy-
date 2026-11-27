@@ -67,6 +67,7 @@ app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
 
 app.use(express.static(FRONT));
 app.get('/admin', (req, res) => res.sendFile(path.join(FRONT, 'admin.html')));
+app.get('/admin/products', (req, res) => res.sendFile(path.join(FRONT, 'admin-products.html')));
 app.use(require('./routes/store')(FRONT));
 app.use(require('./routes/seo')(connectDb, FRONT));
 app.use((req, res) => {
