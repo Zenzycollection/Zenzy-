@@ -5,7 +5,8 @@ const protect = require('../middleware/adminAuth');
 
 const {
   Product, Supplier, Customer, Purchase,
-  Sale, Expense, StockMovement, Payment, Account
+    Sale, Expense, StockMovement, Payment, Account,
+  SaleReturn, PurchaseReturn
 } = require('../models/Business');
 
 const router = express.Router();
