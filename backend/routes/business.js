@@ -711,6 +711,140 @@ router.post('/sales-returns', asyncRoute(async (req, res) => {
   res.status(201).json({ item: result });
 }));
 
+
+// --------------------------------------------------
+// PURCHASE RETURNS
+// --------------------------------------------------
+
+router.get('/purchase-returns', asyncRoute(async (req, res) => {
+  const items = await PurchaseReturn.find()
+    .sort({ returnDate: -1 })
+    .limit(300);
+
+  res.json({ items });
+}));
+
+router.post('/purchase-returns', asyncRoute(async (req, res) => {
+  const b = req.body;
+
+  if (!validId(b.purchase))
+    return res.status(400).json({ error: 'Invalid purchase.' });
+
+  if (!Array.isArray(b.items) || !b.items.length)
+    return res.status(400).json({ error: 'Select items to return.' });
+
+  const session = await mongoose.startSession();
+  let result;
+
+  try {
+    await session.withTransaction(async () => {
+      const purchase = await Purchase.findById(b.purchase)
+        .session(session);
+
+      if (!purchase || purchase.status === 'cancelled')
+        throw new Error('Purchase not found or cancelled.');
+
+      const returnRows = [];
+      let refundTotal = 0;
+
+      for (const line of b.items) {
+        const index = Number(line.purchaseItemIndex);
+        const quantity = Number(line.quantity);
+
+        if (!Number.isInteger(index) || index < 0 ||
+            index >= purchase.items.length)
+          throw new Error('Invalid purchase item.');
+
+        if (!Number.isInteger(quantity) || quantity <= 0)
+          throw new Error('Return quantity must be a positive whole number.');
+
+        const original = purchase.items[index];
+        const alreadyReturned = Number(original.returnedQuantity || 0);
+        const remaining = original.quantity - alreadyReturned;
+
+        if (quantity > remaining)
+          throw new Error('Return quantity exceeds the remaining purchased quantity for ' + original.name + '.');
+
+        const product = await Product.findById(original.product)
+          .session(session);
+
+        if (!product)
+          throw new Error('Product not found: ' + original.name);
+
+        if (product.stock < quantity)
+          throw new Error('Cannot return ' + quantity + ' units of ' +
+            original.name + '. Current stock is ' + product.stock + '.');
+
+        const base = original.unitCost * quantity;
+        const tax = base * Number(original.gstRate || 0) / 100;
+        const refundAmount = Math.round((base + tax) * 100) / 100;
+
+        const before = product.stock;
+        product.stock -= quantity;
+        await product.save({ session });
+
+        original.returnedQuantity = alreadyReturned + quantity;
+
+        await StockMovement.create([{
+          product: product._id,
+          productName: product.name,
+          type: 'return',
+          quantity: -quantity,
+          beforeStock: before,
+          afterStock: product.stock,
+          reference: purchase.purchaseNo,
+          notes: 'Returned to supplier',
+          createdBy: req.admin.email || req.admin.role
+        }], { session });
+
+        refundTotal += refundAmount;
+
+        returnRows.push({
+          purchaseItemIndex: index,
+          product: product._id,
+          name: original.name,
+          quantity,
+          refundAmount
+        });
+      }
+
+      refundTotal = Math.round(refundTotal * 100) / 100;
+
+      const created = await PurchaseReturn.create([{
+        returnNo: makeNo('PRET'),
+        purchase: purchase._id,
+        purchaseNo: purchase.purchaseNo,
+        supplierName: purchase.supplierName,
+        items: returnRows,
+        total: refundTotal,
+        refundMethod: clean(b.refundMethod) || 'bank',
+        reason: clean(b.reason),
+        notes: clean(b.notes)
+      }], { session });
+
+      await purchase.save({ session });
+
+      if (refundTotal > 0) {
+        await Payment.create([{
+          type: 'refund',
+          direction: 'in',
+          amount: refundTotal,
+          method: clean(b.refundMethod) || 'bank',
+          reference: created[0].returnNo,
+          description: 'Supplier purchase return refund / credit'
+        }], { session });
+      }
+
+      result = created[0];
+    });
+  } finally {
+    await session.endSession();
+  }
+
+  res.status(201).json({ item: result });
+}));
+
+
 // --------------------------------------------------
 // EXPENSES
 // --------------------------------------------------
