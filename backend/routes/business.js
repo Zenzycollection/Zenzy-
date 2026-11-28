@@ -735,4 +735,193 @@ router.get('/reports', asyncRoute(async (req, res) => {
   });
 }));
 
+
+// ==================================================
+// ZENZY BUSINESS SYSTEM - ADDITIONAL PRODUCT APIs
+// ==================================================
+
+// LOW STOCK PRODUCTS
+router.get('/products/low-stock', asyncRoute(async (req, res) => {
+  const items = await Product.find({
+    active: true,
+    $expr: { $lte: ['$stock', '$lowStockAt'] }
+  }).sort({ stock: 1 });
+
+  res.json({ success: true, items });
+}));
+
+// SINGLE PRODUCT DETAILS
+router.get('/products/:id', asyncRoute(async (req, res) => {
+  if (!validId(req.params.id))
+    return res.status(400).json({ error: 'Invalid product ID.' });
+
+  const item = await Product.findById(req.params.id);
+
+  if (!item)
+    return res.status(404).json({ error: 'Product not found.' });
+
+  res.json({ success: true, item });
+}));
+
+// DELETE / ARCHIVE PRODUCT
+router.delete('/products/:id', asyncRoute(async (req, res) => {
+  if (!validId(req.params.id))
+    return res.status(400).json({ error: 'Invalid product ID.' });
+
+  const item = await Product.findById(req.params.id);
+
+  if (!item)
+    return res.status(404).json({ error: 'Product not found.' });
+
+  const [sales, purchases] = await Promise.all([
+    Sale.exists({ 'items.product': item._id }),
+    Purchase.exists({ 'items.product': item._id })
+  ]);
+
+  if (sales || purchases) {
+    item.active = false;
+    await item.save();
+
+    return res.json({
+      success: true,
+      message: 'Product archived. Historical transactions preserved.'
+    });
+  }
+
+  await Product.findByIdAndDelete(item._id);
+
+  res.json({
+    success: true,
+    message: 'Product deleted successfully.'
+  });
+}));
+
+// PRODUCT STOCK HISTORY
+router.get('/products/:id/stock-history', asyncRoute(async (req, res) => {
+  if (!validId(req.params.id))
+    return res.status(400).json({ error: 'Invalid product ID.' });
+
+  const items = await StockMovement.find({
+    product: req.params.id
+  }).sort({ createdAt: -1 }).limit(500);
+
+  res.json({ success: true, items });
+}));
+
+// CATEGORY-WISE PRODUCTS
+router.get('/products/category/:categoryId', asyncRoute(async (req, res) => {
+  const categoryId = clean(req.params.categoryId);
+
+  const items = await Product.find({
+    category: categoryId,
+    active: true
+  }).sort({ name: 1 });
+
+  res.json({ success: true, items });
+}));
+
+// SALES DETAILS
+router.get('/sales/:id', asyncRoute(async (req, res) => {
+  if (!validId(req.params.id))
+    return res.status(400).json({ error: 'Invalid sale ID.' });
+
+  const item = await Sale.findById(req.params.id);
+
+  if (!item)
+    return res.status(404).json({ error: 'Sale not found.' });
+
+  res.json({ success: true, item });
+}));
+
+// PURCHASE DETAILS
+router.get('/purchases/:id', asyncRoute(async (req, res) => {
+  if (!validId(req.params.id))
+    return res.status(400).json({ error: 'Invalid purchase ID.' });
+
+  const item = await Purchase.findById(req.params.id);
+
+  if (!item)
+    return res.status(404).json({ error: 'Purchase not found.' });
+
+  res.json({ success: true, item });
+}));
+
+// CUSTOMER UPDATE
+router.put('/customers/:id', asyncRoute(async (req, res) => {
+  if (!validId(req.params.id))
+    return res.status(400).json({ error: 'Invalid customer ID.' });
+
+  const fields = [
+    'name', 'phone', 'email', 'address',
+    'gstin', 'notes'
+  ];
+
+  const update = {};
+
+  fields.forEach(key => {
+    if (req.body[key] !== undefined) {
+      update[key] = key === 'name'
+        ? clean(req.body[key])
+        : req.body[key];
+    }
+  });
+
+  if (update.name !== undefined && !update.name)
+    return res.status(400).json({ error: 'Customer name is required.' });
+
+  const item = await Customer.findByIdAndUpdate(
+    req.params.id,
+    update,
+    { new: true, runValidators: true }
+  );
+
+  if (!item)
+    return res.status(404).json({ error: 'Customer not found.' });
+
+  res.json({ success: true, item });
+}));
+
+// CUSTOMER DELETE
+router.delete('/customers/:id', asyncRoute(async (req, res) => {
+  if (!validId(req.params.id))
+    return res.status(400).json({ error: 'Invalid customer ID.' });
+
+  const linked = await Sale.exists({ customer: req.params.id });
+
+  if (linked) {
+    return res.status(409).json({
+      error: 'Customer has sales history. Archive functionality must be used instead.'
+    });
+  }
+
+  const item = await Customer.findByIdAndDelete(req.params.id);
+
+  if (!item)
+    return res.status(404).json({ error: 'Customer not found.' });
+
+  res.json({ success: true, message: 'Customer deleted.' });
+}));
+
+// SUPPLIER DELETE
+router.delete('/suppliers/:id', asyncRoute(async (req, res) => {
+  if (!validId(req.params.id))
+    return res.status(400).json({ error: 'Invalid supplier ID.' });
+
+  const linked = await Purchase.exists({ supplier: req.params.id });
+
+  if (linked) {
+    return res.status(409).json({
+      error: 'Supplier has purchase history. Archive functionality must be used instead.'
+    });
+  }
+
+  const item = await Supplier.findByIdAndDelete(req.params.id);
+
+  if (!item)
+    return res.status(404).json({ error: 'Supplier not found.' });
+
+  res.json({ success: true, message: 'Supplier deleted.' });
+}));
+
 module.exports = router;
+
