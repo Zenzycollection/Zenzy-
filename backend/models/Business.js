@@ -214,6 +214,10 @@ module.exports = {
     mongoose.model('StockMovement', StockMovementSchema),
   Payment: mongoose.models.BusinessPayment ||
     mongoose.model('BusinessPayment', PaymentSchema),
-  Account: mongoose.models.BusinessAccount ||
-    mongoose.model('BusinessAccount', AccountSchema)
+    Account: mongoose.models.BusinessAccount ||
+    mongoose.model('BusinessAccount', AccountSchema),
+
+  SaleReturn,
+
+  PurchaseReturn
 };
