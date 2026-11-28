@@ -1166,8 +1166,11 @@ function show(name){
   $(name)?.classList.add('active');
   if(name==='dashboard')return;
   const pc=[{label:'Product',value:x=>x.name},{label:'SKU',value:x=>x.sku},{label:'Category',value:x=>x.category},{label:'Buy',value:x=>money(x.costPrice)},{label:'Sell',value:x=>money(x.sellingPrice)},{label:'Stock',value:x=>x.stock},{label:'Status',value:x=>x.stock<=x.lowStockAt?'Low Stock':'Available'}];
-  if(name==='products'){
-    let rows=allProducts;if(filterMode==='low')rows=rows.filter(x=>x.stock<=x.lowStockAt);
+if(name==='products'){
+    let rows=allProducts;
+    if(filterMode==='low'){
+      rows=allProducts.filter(x=>Number(x.stock)<=Number(x.lowStockAt));
+    }
     const q=(window.__pq||'').toLowerCase();if(q)rows=rows.filter(x=>(x.name+' '+x.sku+' '+x.category).toLowerCase().includes(q));
     put('products',filterMode==='low'?'Low Stocks':filterMode==='cat'?'Category':'Products',
       '<input placeholder="Search..." value="'+esc(window.__pq||'')+'" oninput="window.__pq=this.value;__zshow(\'products\')">'+btn('+ Create Product',()=>productForm()),
