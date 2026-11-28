@@ -1250,6 +1250,7 @@ $('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){window.__pq
  if(ib[0])ib[0].onclick=()=>{filterMode='low';show('products');};
  if(ib[1])ib[1].onclick=()=>{location.href='/admin';};}
 window.openModule=function(n){filterMode='';show(n);$('sidebar').classList.remove('open');};
+document.addEventListener('click',e=>{const sb=$('sidebar');if(!sb.classList.contains('open'))return;if(e.target.closest('#sidebar')||e.target.closest('.menu-toggle'))return;sb.classList.remove('open');});
 
 // ---------- MENU: every button by its label ----------
 const MAP={'dashboard':'dashboard','super admin':'dashboard','products':'products','expired products':'na','low stocks':'low',
