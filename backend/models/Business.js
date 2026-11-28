@@ -144,6 +144,59 @@ const AccountSchema = new mongoose.Schema({
   active: { type: Boolean, default: true }
 }, opts);
 
+const SaleReturnSchema = new mongoose.Schema({
+  returnNo: { type: String, unique: true },
+  sale: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BusinessSale',
+    required: true
+  },
+  saleNo: String,
+  customerName: String,
+  items: [{
+    saleItemIndex: Number,
+    product: { type: mongoose.Schema.Types.ObjectId, ref: 'BusinessProduct' },
+    name: String,
+    quantity: Number,
+    resellable: { type: Boolean, default: true },
+    refundAmount: Number
+  }],
+  total: { type: Number, required: true, min: 0 },
+  refundMethod: { type: String, default: 'cash' },
+  reason: String,
+  notes: String,
+  returnDate: { type: Date, default: Date.now }
+}, opts);
+
+const PurchaseReturnSchema = new mongoose.Schema({
+  returnNo: { type: String, unique: true },
+  purchase: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BusinessPurchase',
+    required: true
+  },
+  purchaseNo: String,
+  supplierName: String,
+  items: [{
+    purchaseItemIndex: Number,
+    product: { type: mongoose.Schema.Types.ObjectId, ref: 'BusinessProduct' },
+    name: String,
+    quantity: Number,
+    refundAmount: Number
+  }],
+  total: { type: Number, required: true, min: 0 },
+  refundMethod: { type: String, default: 'bank' },
+  reason: String,
+  notes: String,
+  returnDate: { type: Date, default: Date.now }
+}, opts);
+
+const SaleReturn = mongoose.models.BusinessSaleReturn ||
+  mongoose.model('BusinessSaleReturn', SaleReturnSchema);
+
+const PurchaseReturn = mongoose.models.BusinessPurchaseReturn ||
+  mongoose.model('BusinessPurchaseReturn', PurchaseReturnSchema);
+
 module.exports = {
   Product: mongoose.models.BusinessProduct ||
     mongoose.model('BusinessProduct', ProductSchema),
