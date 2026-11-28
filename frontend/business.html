@@ -1010,8 +1010,50 @@ async function send(method,url,body){
   return d;
 }
 let current='dashboard',filterMode='';
-async function refresh(){await loadAll();show(current);}
+
+async function refresh(){
+  await loadAll();
+  show(current);
+}
+
+async function deleteProduct(id){
+  const product = allProducts.find(p => p._id === id);
+  if (!product) return;
+
+  if (!confirm('Delete or archive "' + product.name + '"?')) return;
+
+  try {
+    const result = await send('DELETE', '/products/' + id);
+    alert(result.message || 'Product action completed.');
+    await refresh();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function showStockHistory(id){
+  try {
+    const d = await api('/products/' + id + '/stock-history');
+    const items = d.items || [];
+
+    const content = items.length
+      ? items.map(x =>
+          (x.createdAt ? new Date(x.createdAt).toLocaleString('en-IN') : '') +
+          ' | ' + (x.type || 'Movement') +
+          ' | Qty: ' + x.quantity +
+          ' | ' + x.beforeStock + ' → ' + x.afterStock +
+          (x.notes ? ' | ' + x.notes : '')
+        ).join('\\n')
+      : 'No stock history found.';
+
+    alert('STOCK HISTORY\\n\\n' + content);
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
 function modal(title,html,onSave,saveText){
+
   const m=document.createElement('div');m.className='zm';
   m.innerHTML='<div class="zb"><h2>'+esc(title)+'</h2><div id="zf">'+html+'</div><div class="zerr" id="ze"></div>'+
   '<div class="zr" style="margin-top:14px"><button class="zbtn" id="zs">'+(saveText||'Save')+'</button><button class="zbtn g" id="zc">Cancel</button></div></div>';
