@@ -52,7 +52,8 @@ const PurchaseSchema = new mongoose.Schema({
     name: String,
     sku: String,
     quantity: { type: Number, min: 1 },
-    unitCost: { type: Number, min: 0 },
+returnedQuantity: { type: Number, default: 0, min: 0 },
+unitCost: { type: Number, min: 0 },
     gstRate: { type: Number, default: 0 },
     total: Number
   }],
