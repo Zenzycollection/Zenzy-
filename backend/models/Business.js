@@ -78,7 +78,8 @@ const SaleSchema = new mongoose.Schema({
     name: String,
     sku: String,
     quantity: { type: Number, min: 1 },
-    unitPrice: { type: Number, min: 0 },
+returnedQuantity: { type: Number, default: 0, min: 0 },
+unitPrice: { type: Number, min: 0 },
     unitCost: { type: Number, default: 0 },
     gstRate: { type: Number, default: 0 },
     total: Number
