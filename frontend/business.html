@@ -934,6 +934,73 @@ loadAll();
 <script>
 (function(){
 const A='/api/business';
+  
+// ==========================================
+// ZENZY PRODUCT MANAGEMENT HELPERS
+// ==========================================
+
+async function loadLowStock() {
+  const result = await api('/products/low-stock');
+
+  const items = result.items || [];
+
+  const columns = [
+    {label:'Product',value:p=>p.name},
+    {label:'SKU',value:p=>p.sku},
+    {label:'Available',value:p=>p.stock},
+    {label:'Minimum',value:p=>p.lowStockAt},
+    {
+      label:'Status',
+      value:p=>p.stock === 0
+        ? 'Out of Stock'
+        : 'Low Stock'
+    }
+  ];
+
+  put(
+    'products',
+    'Low Stock Products',
+    '',
+    makeTable(items,columns)
+  );
+}
+
+async function showStockHistory(productId) {
+  const result = await api(
+    '/products/'+encodeURIComponent(productId)+'/stock-history'
+  );
+
+  const items = result.items || [];
+
+  const columns = [
+    {label:'Product',value:x=>x.productName},
+    {label:'Type',value:x=>x.type},
+    {label:'Change',value:x=>x.quantity},
+    {label:'Previous',value:x=>x.beforeStock},
+    {label:'New Stock',value:x=>x.afterStock},
+    {label:'Reference',value:x=>x.reference},
+    {label:'Date',value:x=>dateValue(x.createdAt)}
+  ];
+
+  put(
+    'stock',
+    'Product Stock History',
+    btn('Back',()=>show('stock')),
+    makeTable(items,columns)
+  );
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Are you sure you want to delete/archive this product?')) {
+    return;
+  }
+
+  await send('DELETE','/products/'+id,{});
+
+  await loadBusiness();
+  show('products');
+}
+
 const H=()=>({'Content-Type':'application/json',Authorization:'Bearer '+token});
 async function send(method,url,body){
   const r=await fetch(A+url,{method,headers:H(),body:JSON.stringify(body)});
