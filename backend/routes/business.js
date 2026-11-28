@@ -550,6 +550,167 @@ router.post('/sales', asyncRoute(async (req, res) => {
   res.status(201).json({ item: sale[0] });
 }));
 
+
+// --------------------------------------------------
+// SALES RETURNS
+// --------------------------------------------------
+
+router.get('/sales-returns', asyncRoute(async (req, res) => {
+  const items = await SaleReturn.find()
+    .sort({ returnDate: -1 })
+    .limit(300);
+
+  res.json({ items });
+}));
+
+router.post('/sales-returns', asyncRoute(async (req, res) => {
+  const b = req.body;
+
+  if (!validId(b.sale))
+    return res.status(400).json({ error: 'Invalid sale.' });
+
+  if (!Array.isArray(b.items) || !b.items.length)
+    return res.status(400).json({ error: 'Select items to return.' });
+
+  const session = await mongoose.startSession();
+  let result;
+
+  try {
+    await session.withTransaction(async () => {
+      const sale = await Sale.findById(b.sale).session(session);
+
+      if (!sale || sale.status === 'cancelled')
+        throw new Error('Sale not found or cancelled.');
+
+      const returnRows = [];
+      let refundTotal = 0;
+
+      for (const line of b.items) {
+        const index = Number(line.saleItemIndex);
+        const quantity = Number(line.quantity);
+
+        if (!Number.isInteger(index) || index < 0 ||
+            index >= sale.items.length)
+          throw new Error('Invalid sale item.');
+
+        if (!Number.isInteger(quantity) || quantity <= 0)
+          throw new Error('Return quantity must be a positive whole number.');
+
+        const original = sale.items[index];
+        const alreadyReturned = Number(original.returnedQuantity || 0);
+        const remaining = original.quantity - alreadyReturned;
+
+        if (quantity > remaining)
+          throw new Error('Return quantity exceeds the remaining sold quantity for ' + original.name + '.');
+
+        const resellable = line.resellable !== false;
+
+        const discountFactor = sale.subtotal + sale.taxAmount > 0
+          ? sale.total / (sale.subtotal + sale.taxAmount)
+          : 0;
+
+        const refundAmount = Math.round(
+          original.total * quantity / original.quantity *
+          discountFactor * 100
+        ) / 100;
+
+        original.returnedQuantity = alreadyReturned + quantity;
+
+        if (resellable) {
+          const product = await Product.findById(original.product)
+            .session(session);
+
+          if (!product)
+            throw new Error('Product not found: ' + original.name);
+
+          const before = product.stock;
+          product.stock += quantity;
+          await product.save({ session });
+
+          await StockMovement.create([{
+            product: product._id,
+            productName: product.name,
+            type: 'return',
+            quantity,
+            beforeStock: before,
+            afterStock: product.stock,
+            reference: sale.saleNo,
+            notes: 'Customer return: resellable',
+            createdBy: req.admin.email || req.admin.role
+          }], { session });
+        } else {
+          const product = await Product.findById(original.product)
+            .session(session);
+
+          if (product) {
+            await StockMovement.create([{
+              product: product._id,
+              productName: product.name,
+              type: 'damage',
+              quantity: 0,
+              beforeStock: product.stock,
+              afterStock: product.stock,
+              reference: sale.saleNo,
+              notes: 'Customer return: damaged / not restocked',
+              createdBy: req.admin.email || req.admin.role
+            }], { session });
+          }
+        }
+
+        refundTotal += refundAmount;
+
+        returnRows.push({
+          saleItemIndex: index,
+          product: original.product,
+          name: original.name,
+          quantity,
+          resellable,
+          refundAmount
+        });
+      }
+
+      refundTotal = Math.round(refundTotal * 100) / 100;
+
+      const created = await SaleReturn.create([{
+        returnNo: makeNo('SRET'),
+        sale: sale._id,
+        saleNo: sale.saleNo,
+        customerName: sale.customerName,
+        items: returnRows,
+        total: refundTotal,
+        refundMethod: clean(b.refundMethod) || 'cash',
+        reason: clean(b.reason),
+        notes: clean(b.notes)
+      }], { session });
+
+      const fullyReturned = sale.items.every(item =>
+        Number(item.returnedQuantity || 0) >= item.quantity
+      );
+
+      if (fullyReturned) sale.status = 'returned';
+
+      await sale.save({ session });
+
+      if (refundTotal > 0) {
+        await Payment.create([{
+          type: 'refund',
+          direction: 'out',
+          amount: refundTotal,
+          method: clean(b.refundMethod) || 'cash',
+          reference: created[0].returnNo,
+          description: 'Customer sales return refund'
+        }], { session });
+      }
+
+      result = created[0];
+    });
+  } finally {
+    await session.endSession();
+  }
+
+  res.status(201).json({ item: result });
+}));
+
 // --------------------------------------------------
 // EXPENSES
 // --------------------------------------------------
