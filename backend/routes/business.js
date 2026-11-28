@@ -24,7 +24,10 @@ const makeNo = prefix =>
   prefix + '-' + Date.now().toString(36).toUpperCase();
 
 const asyncRoute = fn => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
+  Promise.resolve(fn(req, res, next)).catch(err =>
+    err && err.constructor === Error && !err.status
+      ? res.status(400).json({ error: err.message })
+      : next(err));
 
 const validId = id => mongoose.isValidObjectId(id);
 
