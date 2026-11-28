@@ -1173,7 +1173,16 @@ function show(name){
       '<input placeholder="Search..." value="'+esc(window.__pq||'')+'" oninput="window.__pq=this.value;__zshow(\'products\')">'+btn('+ Create Product',()=>productForm()),
       (()=>{window.__zf=window.__zf||[];return rowBtns(filterMode==='cat'?[...rows].sort((a,b)=>(a.category||'').localeCompare(b.category||'')):rows,pc,
         x=>{window.__zf.push(()=>productForm(x));const a=window.__zf.length-1;window.__zf.push(()=>stockForm(x._id));const b=window.__zf.length-1;
-          return '<button class="zbtn g s" onclick="__zf['+a+']()">Edit</button> <button class="zbtn g s" onclick="__zf['+b+']()">Stock</button>';});})());
+          window.__zf.push(()=>showStockHistory(x._id));
+const h=window.__zf.length-1;
+
+window.__zf.push(()=>deleteProduct(x._id));
+const d=window.__zf.length-1;
+
+return '<button class="zbtn g s" onclick="__zf['+a+']()">Edit</button> '+
+       '<button class="zbtn g s" onclick="__zf['+b+']()">Stock</button> '+
+       '<button class="zbtn g s" onclick="__zf['+h+']()">History</button> '+
+       '<button class="zbtn g s" onclick="__zf['+d+']()">Delete</button>';});})());
   }
   if(name==='stock')put('stock','Stock',btn('+ Adjust Stock',()=>stockForm()),makeTable(allProducts,[{label:'Product',value:x=>x.name},{label:'SKU',value:x=>x.sku},{label:'Stock',value:x=>x.stock},{label:'Alert at',value:x=>x.lowStockAt}]));
   if(name==='sales')put('sales','Sales',btn('+ New Sale (POS)',()=>billForm('sale')),makeTable(allSales,[{label:'Invoice',value:x=>x.saleNo},{label:'Customer',value:x=>x.customerName},{label:'Date',value:x=>dateValue(x.saleDate)},{label:'Total',value:x=>money(x.total)},{label:'Paid',value:x=>money(x.paid)},{label:'Status',value:x=>x.status}]));
