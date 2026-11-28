@@ -1252,8 +1252,8 @@ window.openModule=function(n){filterMode='';show(n);$('sidebar').classList.remov
 
 // ---------- MENU: every button by its label ----------
 const MAP={'dashboard':'dashboard','super admin':'dashboard','products':'products','expired products':'products','low stocks':'low',
- 'category':'cat','sub category':'cat','brands':'cat','units':'products','variant attributes':'products','warranties':'products','print barcode':'products','print qr code':'products',
- 'manage stock':'stock','stock transfer':'stock','all sales':'sales','sales return':'sales','all purchases':'purchases','purchase return':'purchases',
+'category':'cat','sub category':'cat','brands':'na','units':'units','variant attributes':'variants','warranties':'na','print barcode':'barcode','print qr code':'qr',
+ 'manage stock':'stock','stock transfer':'na','all sales':'sales','sales return':'sreturns','all purchases':'purchases','purchase return':'preturns',
  'customers':'customers','suppliers':'suppliers','expenses':'expenses','accounts':'accounts','profit & loss':'reports'};
 document.addEventListener('click',e=>{
   const b=e.target.closest('.nav-item[data-module]');if(!b)return;
