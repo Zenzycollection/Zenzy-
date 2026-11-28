@@ -1095,7 +1095,7 @@ function personForm(kind,p){
     inp('Name *','name',p.name)+inp('Phone','phone',p.phone)+inp('Email','email',p.email)+
     inp('Address','address',p.address)+inp('GSTIN','gstin',p.gstin)+inp('Notes','notes',p.notes),
     async m=>{const b={};['name','phone','email','address','gstin','notes'].forEach(k=>b[k]=v(m,k));
-      await send(p._id&&kind==='supplier'?'PUT':'POST',url+(p._id&&kind==='supplier'?'/'+p._id:''),b);});
+      await send(p._id?'PUT':'POST',url+(p._id?'/'+p._id:''),b);});
 }
 function expenseForm(){
   modal('Add Expense',inp('Title *','title','')+inp('Category','category','Other')+inp('Amount *','amount','','number')+
