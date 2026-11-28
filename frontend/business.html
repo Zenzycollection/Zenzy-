@@ -1265,6 +1265,7 @@ document.addEventListener('click',e=>{
   if(t==='stock adjustment'){show('stock');stockForm();return;}
   if(t==='pos billing'){show('sales');billForm('sale');return;}
   if(t==='new purchase'){show('purchases');billForm('purchase');return;}
+    window.__naTitle=b.textContent.trim();
   filterMode=MAP[t]==='low'?'low':MAP[t]==='cat'?'cat':'';
   show(MAP[t]==='low'||MAP[t]==='cat'?'products':(MAP[t]||b.dataset.module));
 },true);
