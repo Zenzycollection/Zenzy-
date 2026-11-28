@@ -1202,8 +1202,52 @@ return '<button class="zbtn g s" onclick="__zf['+a+']()">Edit</button> '+
   if(name==='expenses')put('expenses','Expenses',btn('+ Add Expense',expenseForm),makeTable(allExpenses,[{label:'Title',value:x=>x.title},{label:'Category',value:x=>x.category},{label:'Date',value:x=>dateValue(x.expenseDate)},{label:'Amount',value:x=>money(x.amount)}]));
   if(name==='accounts')api('/accounts').then(d=>put('accounts','Accounts',btn('+ Add Account',accountForm),makeTable(d.items||[],[{label:'Account',value:x=>x.name},{label:'Type',value:x=>x.type},{label:'Opening',value:x=>money(x.openingBalance)}]))).catch(e=>$('accounts').textContent=e.message);
   if(name==='reports')loadReports();
+  if(name==='sreturns')api('/sales-returns').then(d=>put('sreturns','Sales Return',btn('+ New Return',()=>returnForm('sale')),makeTable(d.items||[],[{label:'Return',value:x=>x.returnNo},{label:'Sale',value:x=>x.saleNo},{label:'Customer',value:x=>x.customerName},{label:'Date',value:x=>dateValue(x.returnDate)},{label:'Refund',value:x=>money(x.total)}]))).catch(e=>{$('sreturns').textContent=e.message});
+  if(name==='preturns')api('/purchase-returns').then(d=>put('preturns','Purchase Return',btn('+ New Return',()=>returnForm('purchase')),makeTable(d.items||[],[{label:'Return',value:x=>x.returnNo},{label:'Purchase',value:x=>x.purchaseNo},{label:'Supplier',value:x=>x.supplierName},{label:'Date',value:x=>dateValue(x.returnDate)},{label:'Refund',value:x=>money(x.total)}]))).catch(e=>{$('preturns').textContent=e.message});
+  if(name==='units'){const g={};allProducts.forEach(p=>{const u=p.unit||'piece';g[u]=g[u]||{unit:u,products:0,stock:0};g[u].products++;g[u].stock+=Number(p.stock)||0});put('units','Units','',makeTable(Object.values(g),[{label:'Unit',value:x=>x.unit},{label:'Products',value:x=>x.products},{label:'Total stock',value:x=>x.stock}]));}
+  if(name==='variants')put('variants','Variant Attributes','',makeTable(allProducts,[{label:'Product',value:x=>x.name},{label:'Sizes',value:x=>(x.sizes||[]).join(', ')||'-'},{label:'Colors',value:x=>(x.colors||[]).join(', ')||'-'}]));
+  if(name==='barcode'||name==='qr')labelPage(name);
+  if(name==='na')put('na',window.__naTitle||'Not available','','<p style="padding:24px;color:#777">This feature is not set up in Zenzy yet (it needs its own data, which does not exist in the database). Products, stock, sales, purchases, returns, customers, suppliers, expenses and accounts are all fully working.</p>');
 }
 window.__zshow=show;
+function returnForm(kind){
+  const sale=kind==='sale',src=sale?allSales:allPurchases;
+  const m=modal(sale?'Sales Return':'Purchase Return',
+    '<label>'+(sale?'Sale invoice':'Purchase')+' *</label><select name="doc"><option value="">Select</option>'+opts(src.map(x=>[x._id,sale?x.saleNo+' - '+x.customerName:x.purchaseNo+' - '+x.supplierName]))+'</select><div id="zrl"></div>'+
+    inp('Reason','reason','')+'<label>Refund method</label><select name="rm">'+opts([['cash','Cash'],['upi','UPI'],['bank','Bank'],['card','Card']])+'</select>',
+    async m=>{
+      const doc=src.find(x=>x._id===v(m,'doc'));if(!doc)throw Error('Select a '+(sale?'sale':'purchase')+'.');
+      const items=[...m.querySelectorAll('.zq')].map(i=>({[sale?'saleItemIndex':'purchaseItemIndex']:+i.dataset.i,quantity:+i.value})).filter(x=>x.quantity>0);
+      if(!items.length)throw Error('Enter a return quantity for at least one item.');
+      await send('POST',sale?'/sales-returns':'/purchase-returns',{[sale?'sale':'purchase']:doc._id,items,reason:v(m,'reason'),refundMethod:v(m,'rm')});
+    });
+  f(m,'doc').onchange=()=>{
+    const doc=src.find(x=>x._id===f(m,'doc').value);
+    m.querySelector('#zrl').innerHTML=doc?doc.items.map((it,i)=>{const left=it.quantity-(it.returnedQuantity||0);return '<div class="zr"><span style="flex:3;font-size:13px">'+esc(it.name)+' (qty '+it.quantity+', can return '+left+')</span><input class="zq" data-i="'+i+'" type="number" min="0" max="'+left+'" value="0" style="flex:1"></div>'}).join(''):'';
+  };
+}
+function loadLib(u){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>no(Error('Could not load label library (check internet).'));document.head.appendChild(s)})}
+async function labelPage(kind){
+  const qr=kind==='qr';
+  put(kind,qr?'Print QR Code':'Print Barcode',btn('Print',()=>window.print()),'<div id="zlabs" style="display:flex;flex-wrap:wrap;gap:10px;padding:12px">Loading...</div>');
+  try{
+    await loadLib(qr?'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js':'https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js');
+    const box=$('zlabs');box.innerHTML='';
+    allProducts.forEach(p=>{
+      const code=p.barcode||p.sku,d=document.createElement('div');
+      d.style.cssText='border:1px solid #ddd;padding:8px;text-align:center;width:170px;font-size:12px;break-inside:avoid';
+      d.innerHTML='<b>'+esc(p.name)+'</b><div class="zc" style="margin:6px auto"></div><div>'+esc(code)+' · '+money(p.sellingPrice)+'</div>';
+      box.appendChild(d);const c=d.querySelector('.zc');
+      if(qr){c.style.width='90px';new QRCode(c,{text:String(code),width:90,height:90});}
+      else{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');c.appendChild(s);try{JsBarcode(s,String(code),{height:40,fontSize:11,margin:0})}catch(e){c.textContent=code}}
+    });
+    if(!allProducts.length)box.textContent='No products yet.';
+  }catch(e){$('zlabs').textContent=e.message}
+}
+$('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){window.__pq=e.target.value;filterMode='';show('products');}});
+{const ib=document.querySelectorAll('.icon-btn.desktop-only');
+ if(ib[0])ib[0].onclick=()=>{filterMode='low';show('products');};
+ if(ib[1])ib[1].onclick=()=>{location.href='/admin';};}
 window.openModule=function(n){filterMode='';show(n);$('sidebar').classList.remove('open');};
 
 // ---------- MENU: every button by its label ----------
